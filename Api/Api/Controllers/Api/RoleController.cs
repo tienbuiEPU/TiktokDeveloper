@@ -23,14 +23,14 @@ namespace Api.Controllers.Api
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class FunctionController : ControllerBase
+    public class RoleController : ControllerBase
     {
-        private static readonly ILog log = LogMaster.GetLogger("function", "function");
-        private static string functionCode = "FUNCTION_MANAGEMENT";
+        private static readonly ILog log = LogMaster.GetLogger("role", "role");
+        private static string functionCode = "ROLE_MANAGEMENT";
         private readonly ApiDbContext _context;
         private IMapper _mapper;
 
-        public FunctionController(ApiDbContext context, IMapper mapper)
+        public RoleController(ApiDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
@@ -54,7 +54,7 @@ namespace Api.Controllers.Api
                 if (paging != null)
                 {
                     def.meta = new Meta(200, ApiConstants.MessageResource.ACCTION_SUCCESS);
-                    IQueryable<Function> data = _context.Functions.Where(c => c.Status != AppEnums.EntityStatus.DELETED);
+                    IQueryable<Role> data = _context.Roles.Where(c => c.Status != AppEnums.EntityStatus.DELETED);
                     if (paging.query != null)
                     {
                         paging.query = HttpUtility.UrlDecode(paging.query);
@@ -94,7 +94,13 @@ namespace Api.Controllers.Api
                     }
                     else
                     {
-                        def.data = _mapper.Map<List<FunctionData>>(data.ToList());
+                        List<RoleData> res = _mapper.Map<List<RoleData>>(data.ToList());
+                        foreach(RoleData item in res)
+                        {
+                            item.functionRoles = _context.FunctionRoles.Where(e => e.TargetId == item.Id && e.Type == (int)AppEnums.TypeFunction.FUNCTION_ROLE && e.Status != AppEnums.EntityStatus.DELETED).ToList();
+                        }
+
+                        def.data = res;
                     }
 
                     return Ok(def);
@@ -113,7 +119,7 @@ namespace Api.Controllers.Api
             }
         }
 
-        // GET: api/Function/1
+        // GET: api/Role/1
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -129,7 +135,7 @@ namespace Api.Controllers.Api
 
             try
             {
-                Function data = await _context.Functions.FindAsync(id);
+                Role data = await _context.Roles.FindAsync(id);
 
                 if (data == null)
                 {
@@ -137,8 +143,11 @@ namespace Api.Controllers.Api
                     return Ok(def);
                 }
 
+                RoleData res = _mapper.Map<RoleData>(data);
+                res.functionRoles = _context.FunctionRoles.Where(e => e.TargetId == res.Id && e.Type == (int)AppEnums.TypeFunction.FUNCTION_ROLE && e.Status != AppEnums.EntityStatus.DELETED).ToList();
+
                 def.meta = new Meta(200, ApiConstants.MessageResource.ACCTION_SUCCESS);
-                def.data = data;
+                def.data = res;
                 return Ok(def);
             }
             catch(Exception ex)
@@ -149,9 +158,9 @@ namespace Api.Controllers.Api
             }
         }
 
-        // POST: api/Function
+        // POST: api/Role
         [HttpPost]
-        public async Task<IActionResult> Post(Function input)
+        public async Task<IActionResult> Post(RoleData input)
         {
             DefaultResponse def = new DefaultResponse();
             
@@ -167,15 +176,25 @@ namespace Api.Controllers.Api
 
             try
             {
-                input = (Function)UtilsService.TrimStringPropertyTypeObject(input);
-
                 if (!ModelState.IsValid)
                 {
                     def.meta = new Meta(400, ApiConstants.MessageResource.BAD_REQUEST_MESSAGE);
                     return Ok(def);
                 }
-                
-                Function codeExist = _context.Functions.Where(f => f.Code == input.Code && f.Status != AppEnums.EntityStatus.DELETED).FirstOrDefault();
+
+                if (input.functionRoles == null)
+                {
+                    def.meta = new Meta(400, "Danh sách chức năng đang trống!");
+                    return Ok(def);
+                }
+
+                if (input.functionRoles.Count == 0)
+                {
+                    def.meta = new Meta(400, "Danh sách chức năng đang trống!");
+                    return Ok(def);
+                }
+
+                Role codeExist = _context.Roles.Where(f => f.Code == input.Code && f.Status != AppEnums.EntityStatus.DELETED).FirstOrDefault();
                 if (codeExist != null)
                 {
                     def.meta = new Meta(211, "Mã đã tồn tại!");
@@ -184,14 +203,27 @@ namespace Api.Controllers.Api
 
                 using (var transaction = _context.Database.BeginTransaction())
                 {
-                    input.FunctionParentId = input.FunctionParentId != null ? input.FunctionParentId : 0;
                     input.CreatedById = userId;
                     input.CreatedBy = fullName;
-                    _context.Functions.Add(input);
+                    _context.Roles.Add(input);
 
                     try
                     {
                         await _context.SaveChangesAsync();
+
+                        if(input.functionRoles != null)
+                        {
+                            foreach (FunctionRole functionRole in input.functionRoles)
+                            {
+                                functionRole.TargetId = input.Id;
+                                functionRole.Type = (int)AppEnums.TypeFunction.FUNCTION_ROLE;
+                                functionRole.CreatedBy = fullName;
+                                functionRole.CreatedById = userId;
+
+                                _context.FunctionRoles.Add(functionRole);
+                            }
+                            await _context.SaveChangesAsync();
+                        }
 
                         if (input.Id > 0)
                             transaction.Commit();
@@ -206,7 +238,7 @@ namespace Api.Controllers.Api
                     {
                         log.Error("DbUpdateException:" + e);
                         transaction.Rollback();
-                        if (FunctionExists(input.Id))
+                        if (RoleExists(input.Id))
                         {
                             def.meta = new Meta(212, "Đã tồn tại Id trên hệ thống!");
                             return Ok(def);
@@ -227,9 +259,9 @@ namespace Api.Controllers.Api
             }
         }
 
-        // PUT: api/Function/1
+        // PUT: api/Role/1
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] Function input)
+        public async Task<IActionResult> Put(int id, [FromBody] RoleData input)
         {
             DefaultResponse def = new DefaultResponse();
             
@@ -245,17 +277,21 @@ namespace Api.Controllers.Api
 
             try
             {
-                input = (Function)UtilsService.TrimStringPropertyTypeObject(input);
-
                 if (!ModelState.IsValid)
                 {
                     def.meta = new Meta(400, ApiConstants.MessageResource.BAD_REQUEST_MESSAGE);
                     return Ok(def);
                 }
 
-                if (id == input.FunctionParentId)
+                if (input.functionRoles == null)
                 {
-                    def.meta = new Meta(215, "Chức năng cha không hợp lệ!");
+                    def.meta = new Meta(400, "Danh sách chức năng đang trống!");
+                    return Ok(def);
+                }
+
+                if (input.functionRoles.Count == 0)
+                {
+                    def.meta = new Meta(400, "Danh sách chức năng đang trống!");
                     return Ok(def);
                 }
 
@@ -265,14 +301,14 @@ namespace Api.Controllers.Api
                     return Ok(def);
                 }
 
-                Function data = await _context.Functions.FindAsync(id);
+                Role data = await _context.Roles.FindAsync(id);
                 if(data == null)
                 {
                     def.meta = new Meta(404, ApiConstants.MessageResource.NOT_FOUND_UPDATE_MESSAGE);
                     return Ok(def);
                 }
 
-                Function codeExist = _context.Functions.Where(f => f.Code == input.Code && f.Status != AppEnums.EntityStatus.DELETED && f.Id != id).FirstOrDefault();
+                Role codeExist = _context.Roles.Where(f => f.Code == input.Code && f.Status != AppEnums.EntityStatus.DELETED && f.Id != id).FirstOrDefault();
                 if (codeExist != null)
                 {
                     def.meta = new Meta(211, "Mã đã tồn tại!");
@@ -281,7 +317,6 @@ namespace Api.Controllers.Api
 
                 using (var transaction = _context.Database.BeginTransaction())
                 {
-                    input.FunctionParentId = input.FunctionParentId != null ? input.FunctionParentId : 0;
                     input.UpdatedAt = DateTime.Now;
                     input.UpdatedById = userId;
                     input.UpdatedBy = fullName;
@@ -289,10 +324,40 @@ namespace Api.Controllers.Api
                     input.CreatedBy = data.CreatedBy;
                     input.CreatedById = data.CreatedById;
                     input.Status = data.Status;
+
                     _context.Update(input);
 
                     try
                     {
+                        List<FunctionRole> functionRoles = _context.FunctionRoles.Where(e => e.TargetId == input.Id && e.Type == (int)AppEnums.TypeFunction.FUNCTION_ROLE && e.Status != AppEnums.EntityStatus.DELETED).ToList();
+                        if(input.functionRoles != null)
+                        {
+                            foreach (FunctionRole functionRole in input.functionRoles)
+                            {
+                                FunctionRole functionRoleExist = functionRoles.Where(e => e.FunctionId == functionRole.FunctionId).FirstOrDefault();
+                                if (functionRoleExist == null)
+                                {
+                                    functionRole.TargetId = input.Id;
+                                    functionRole.Type = (int)AppEnums.TypeFunction.FUNCTION_ROLE;
+                                    functionRole.CreatedBy = fullName;
+                                    functionRole.CreatedById = userId;
+                                    _context.FunctionRoles.Add(functionRole);
+                                }
+                                else
+                                {
+                                    functionRoles.Remove(functionRole);
+                                }
+                            }
+                        }
+
+                        functionRoles.ForEach(item => {
+                            item.UpdatedAt = DateTime.Now;
+                            item.UpdatedById = userId;
+                            item.UpdatedBy = fullName;
+                            item.Status = AppEnums.EntityStatus.DELETED;
+                        });
+                        _context.UpdateRange(functionRoles);
+
                         await _context.SaveChangesAsync();
 
                         if (data.Id > 0)
@@ -308,7 +373,7 @@ namespace Api.Controllers.Api
                     {
                         transaction.Rollback();
                         log.Error("DbUpdateException:" + e);
-                        if (FunctionExists(data.Id))
+                        if (RoleExists(data.Id))
                         {
                             def.meta = new Meta(212, "Đã tồn tại Id trên hệ thống!");
                             return Ok(def);
@@ -329,7 +394,7 @@ namespace Api.Controllers.Api
             }
         }
 
-        // DELETE: api/Function/1
+        // DELETE: api/Role/1
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -347,18 +412,18 @@ namespace Api.Controllers.Api
 
             try
             {
-                Function data = await _context.Functions.FindAsync(id);
+                Role data = await _context.Roles.FindAsync(id);
                 if(data == null)
                 {
                     def.meta = new Meta(404, ApiConstants.MessageResource.NOT_FOUND_DELETE_MESSAGE);
                     return Ok(def);
                 }
 
-                //Kiểm tra nếu còn nhóm quyền đc map với chức năng này thì không thể xóa
-                FunctionRole functionRole = _context.FunctionRoles.Where(e => e.FunctionId == data.Id && e.Type == (int)AppEnums.TypeFunction.FUNCTION_ROLE && e.Status != AppEnums.EntityStatus.DELETED).FirstOrDefault();
-                if(functionRole != null)
+                //Kiểm tra xem có người dùng nào map với nhóm quyền này không
+                UserRole userRole = _context.UserRoles.Where(e => e.RoleId == data.Id && e.Status != AppEnums.EntityStatus.DELETED).FirstOrDefault();
+                if (userRole != null)
                 {
-                    def.meta = new Meta(213, "Không thể xóa chức năng đã được map với nhóm quyền!");
+                    def.meta = new Meta(213, "Không thể xóa nhóm quyền đã được map với người dùng!");
                     return Ok(def);
                 }
 
@@ -370,28 +435,27 @@ namespace Api.Controllers.Api
                     data.Status = AppEnums.EntityStatus.DELETED;
                     _context.Update(data);
 
-                    //List<FunctionRole> fr = _context.FunctionRoles.Where(e => e.FunctionId == data.Id && e.Type == (int)AppEnums.TypeFunction.FUNCTION_ROLE && e.Status != AppEnums.EntityStatus.DELETED).ToList();
-                    //fr.ForEach(item => {
+                    List<FunctionRole> fr = _context.FunctionRoles.Where(e => e.FunctionId == data.Id && e.Type == (int)AppEnums.TypeFunction.FUNCTION_ROLE && e.Status != AppEnums.EntityStatus.DELETED).ToList();
+                    fr.ForEach(item => {
+                        item.UpdatedAt = DateTime.Now;
+                        item.UpdatedById = userId;
+                        item.UpdatedBy = fullName;
+                        item.Status = AppEnums.EntityStatus.DELETED;
+                    });
+                    _context.UpdateRange(fr);
+
+                    //List<UserRole> ur = _context.UserRoles.Where(e => e.RoleId == data.Id && e.Status != AppEnums.EntityStatus.DELETED).ToList();
+                    //ur.ForEach(item => {
                     //    item.UpdatedAt = DateTime.Now;
                     //    item.UpdatedById = userId;
                     //    item.UpdatedBy = fullName;
                     //    item.Status = AppEnums.EntityStatus.DELETED;
                     //});
-                    //_context.UpdateRange(fr);
-
-                    var childs = _context.Functions.Where(f => f.FunctionParentId == data.Id && f.Status != AppEnums.EntityStatus.DELETED).ToList();
-                    childs.ForEach(item => {
-                        item.FunctionParentId = 0;
-                        item.UpdatedAt = DateTime.Now;
-                        item.UpdatedById = userId;
-                        item.UpdatedBy = fullName;
-                    });
-                    _context.UpdateRange(childs);
+                    //_context.UpdateRange(ur);
 
                     try
                     {
                         await _context.SaveChangesAsync();
-
                         if (data.Id > 0)
                             transaction.Commit();
                         else
@@ -405,7 +469,7 @@ namespace Api.Controllers.Api
                     {
                         transaction.Rollback();
                         log.Error("DbUpdateException:" + e);
-                        if (!FunctionExists(data.Id))
+                        if (!RoleExists(data.Id))
                         {
                             def.meta = new Meta(404, ApiConstants.MessageResource.NOT_FOUND_DELETE_MESSAGE);
                             return Ok(def);
@@ -425,9 +489,9 @@ namespace Api.Controllers.Api
             }
         }
 
-        private bool FunctionExists(int id)
+        private bool RoleExists(int id)
         {
-            return _context.Functions.Count(e => e.Id == id) > 0;
+            return _context.Roles.Count(e => e.Id == id) > 0;
         }
     }
 }

@@ -14,6 +14,8 @@ namespace Api.Common.Bases.Configurations
             builder.Property(i => i.UpdatedAt).HasDefaultValueSql("getdate()"); ;
             builder.Property(i => i.CreatedById).IsRequired(false);
             builder.Property(i => i.UpdatedById).IsRequired(false);
+            builder.Property(i => i.CreatedBy).HasMaxLength(500).IsRequired(false);
+            builder.Property(i => i.UpdatedBy).HasMaxLength(500).IsRequired(false);
             builder.Property(i => i.Status).HasDefaultValue(EntityStatus.NORMAL);
         }
     }

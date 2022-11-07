@@ -235,6 +235,18 @@ namespace Api.Common.Services
         }
 
 
+        public static object TrimStringPropertyTypeObject(object obj)
+        {
+            var stringProperties = obj.GetType().GetProperties()
+                          .Where(p => p.PropertyType == typeof(string));
 
+            foreach (var stringProperty in stringProperties)
+            {
+                string currentValue = (string)stringProperty.GetValue(obj, null);
+                stringProperty.SetValue(obj, currentValue.Trim(), null);
+            }
+
+            return obj;
+        }
     }
 }
