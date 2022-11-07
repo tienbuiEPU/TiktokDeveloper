@@ -1,6 +1,5 @@
 ﻿using Api.Common.Bases;
 using Api.Common.Bases.Configurations;
-using Api.Common.Bases.Persistence;
 using Api.Common.Interfaces.Helpers;
 using Api.Entities;
 using Microsoft.EntityFrameworkCore;

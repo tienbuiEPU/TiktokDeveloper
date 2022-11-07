@@ -1,3 +1,5 @@
+using Api.Common.Interfaces.Helpers;
+using Api.Common.Services;
 using Api.Models.Mappings;
 using Api.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -35,10 +37,12 @@ namespace Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddTransient<IDateTimeService, DateTimeService>();
+
             // Auto mapper Configuration
             services.AddAutoMapper(typeof(Startup));
-            var coreMappingAssembly = typeof(AutoMapping).Assembly;
-            services.AddAutoMapper(coreMappingAssembly);
+            //var coreMappingAssembly = typeof(AutoMapping).Assembly;
+            //services.AddAutoMapper(coreMappingAssembly);
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
             services.AddDbContext<ApiDbContext>();

@@ -1,5 +1,4 @@
-﻿using Api.Common.Interfaces.Repository;
-using AutoMapper;
+﻿using AutoMapper;
 
 namespace Api.Models.Mappings
 {
@@ -7,7 +6,7 @@ namespace Api.Models.Mappings
     {
         public AutoMapping()
         {
-            CreateMap(typeof(IPagedResult<>), typeof(IPagedResult<>)).ReverseMap();
+            //CreateMap(typeof(IPagedResult<>), typeof(IPagedResult<>)).ReverseMap();
         }
     }
 }
