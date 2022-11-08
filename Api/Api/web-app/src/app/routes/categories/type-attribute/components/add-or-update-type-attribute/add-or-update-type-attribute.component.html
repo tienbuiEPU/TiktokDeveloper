@@ -1,0 +1,65 @@
+<form nz-form [formGroup]="validateForm" style="padding-bottom: 30px;">
+    <nz-form-item>
+        <nz-form-label [nzSpan]="6" nzFor="Code" nzRequired>Mã loại hình</nz-form-label>
+        <nz-form-control [nzSpan]="14" nzHasFeedback nzErrorTip="Chưa nhập mã loại hình!">
+            <input nz-input formControlName="Code" />
+        </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+        <nz-form-label [nzSpan]="6" nzFor="Name" nzRequired>Tên loại hình</nz-form-label>
+        <nz-form-control [nzSpan]="14" nzHasFeedback nzErrorTip="Chưa nhập tên loại hình!">
+            <input nz-input formControlName="Name" />
+        </nz-form-control>
+    </nz-form-item>
+    <nz-form-item nz-row class="register-area">
+        <!-- <nz-form-label [nzSpan]="6" nzFor="IsUpdate">Update</nz-form-label> -->
+        <nz-form-control [nzSpan]="12" [nzOffset]="6">
+            <label nz-checkbox formControlName="IsUpdate">
+                <span>
+                    Cho phép sửa
+                </span>
+            </label>
+        </nz-form-control>
+    </nz-form-item>
+    <nz-form-item nz-row class="register-area">
+        <!-- <nz-form-label [nzSpan]="6" nzFor="IsDelete">Cho </nz-form-label> -->
+        <nz-form-control [nzSpan]="12" [nzOffset]="6">
+            <label nz-checkbox formControlName="IsDelete">
+                <span>
+                    Cho phép xóa
+                </span>
+            </label>
+        </nz-form-control>
+    </nz-form-item>
+
+    <div nz-row>
+        <div nz-span>
+            <!-- <button nz-button [nzType]="'primary'" ty>
+                <i nz-icon nzType="add" nzTheme="outline" (click)="openAddTypeAttributeItem()"></i>
+                Thêm mới thuộc tính
+            </button> -->
+            <a nz-button nzType="link" (click)="openAddTypeAttributeItem()" style="background: #096dd9;color:#fff;border-color:#096dd9;">Thêm thuộc tính</a>
+        </div>
+    </div>
+    <div nz-row>
+        <div nz-span>
+            <div class="card-body">
+                <st #tableItemRef [data]="listItem" (change)="tableItemRefChange($event)" [columns]="columnsItem"
+                    [size]="'small'" [loading]="loading" [widthMode]="{ type: 'strict',strictBehavior:'truncate' }"
+                    [page]="{front:false}">
+                </st>
+            </div>
+        </div>
+    </div>
+
+</form>
+
+<div class="drawer-footer">
+    <button nz-button [nzType]="'default'" (click)="close()">
+        <i nz-icon nzType="stop" nzTheme="outline"></i>
+        Đóng </button>
+    <button nz-button [nzType]="'primary'" [disabled]="!validateForm.valid || loading" (click)="submitForm()">
+        <i nz-icon nzType="save" nzTheme="outline"></i>
+        Lưu
+    </button>
+</div>

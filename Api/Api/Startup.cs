@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -97,6 +98,11 @@ namespace Api
                     ClockSkew = TimeSpan.Zero // remove delay of token when expire
                 };
             });
+
+            services.AddSpaStaticFiles(configuration =>
+            {
+                configuration.RootPath = "web-app/dist";
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -129,7 +135,19 @@ namespace Api
             {
                 endpoints.MapControllerRoute(
                      name: "default",
-                     pattern: "{controller=Home}/{action=Index}");
+                     pattern: "{controller}/{action=Index}");
+            });
+
+            app.UseSpa(spa =>
+            {
+                spa.Options.SourcePath = "web-app";
+
+                if (env.IsDevelopment())
+                {
+                    TimeSpan interval = TimeSpan.FromSeconds(120);
+                    spa.Options.StartupTimeout = interval;
+                    spa.UseAngularCliServer(npmScript: "start");
+                }
             });
         }
     }
