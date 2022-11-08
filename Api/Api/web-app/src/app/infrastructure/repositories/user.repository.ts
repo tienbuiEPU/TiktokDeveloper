@@ -70,4 +70,11 @@ export class UserRepository {
       body: undefined
     });
   }
+
+  public async changePassUser(param: any) {
+    return this.baseHttpClient.putRequest({
+      url: `${this.baseUrl}/changePassUser/${param.Id}`,
+      body: param
+    });
+  }
 }

@@ -1,12 +1,10 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { BaseRepository } from 'src/app/infrastructure/repositories/base.repository';
+import { UserRepository } from 'src/app/infrastructure/repositories/user.repository';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import * as CryptoJS from 'crypto-js';
-import { NzUploadFile, NzUploadXHRArgs } from 'ng-zorro-antd/upload';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
-import GetByPageModel from 'src/app/core/models/get-by-page-model';
 import { NzModalService, NzModalRef } from 'ng-zorro-antd/modal';
 
 @Component({
@@ -50,7 +48,7 @@ export class ChangePassUserComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private baseRepository: BaseRepository,
+    private userRepository: UserRepository,
     private message: NzMessageService,
     private modalSrv: NzModalService,
     private modal: NzModalRef
@@ -91,7 +89,7 @@ export class ChangePassUserComponent implements OnInit {
 
     try {
       this.loading = true;
-      const resp = await this.baseRepository.update('/User/adminChangePass/' + data.UserId, data);
+      const resp = await this.userRepository.update(data);
 
       if (resp.meta?.error_code == 200) {
         this.modal.triggerOk();

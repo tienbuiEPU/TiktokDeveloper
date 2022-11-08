@@ -8,7 +8,6 @@ import { LayoutBasicComponent } from '../layout/basic/basic.component';
 import { LayoutLoginComponent } from '../layout/login/login.component';
 // dashboard pages
 import { DashboardComponent } from './dashboard/dashboard.component';
-import { FunctionComponent } from './function/function.component';
 import { LoginComponent } from './login/login.component';
 
 const routes: Routes = [
@@ -20,7 +19,7 @@ const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent, data: { title: 'Quản lý bệnh viện' } },
       { path: 'exception', loadChildren: () => import('./exception/exception.module').then(m => m.ExceptionModule) },
-      { path: 'categories', loadChildren: () => import('./categories/categories.module').then(m => m.CategoriesModule) },
+      { path: 'categories', loadChildren: () => import('./category/category.module').then(m => m.CategoriesModule) },
       { path: 'system', loadChildren: () => import('./system/system.module').then(m => m.SystemModule) },
     ]
   },
@@ -43,4 +42,4 @@ const routes: Routes = [
   ],
   exports: [RouterModule]
 })
-export class RouteRoutingModule {}
+export class RouteRoutingModule { }

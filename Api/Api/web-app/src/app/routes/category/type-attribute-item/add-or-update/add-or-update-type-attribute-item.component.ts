@@ -13,7 +13,7 @@ import QueryModel from 'src/app/core/models/query-model';
   selector: 'app-categories-add-or-update-type-attribute-item',
   templateUrl: './add-or-update-type-attribute-item.component.html',
 })
-export class CategoriesAddOrUpdateTypeAttributeItemComponent implements OnInit {
+export class AddOrUpdateTypeAttributeItemComponent implements OnInit {
     validateFormItem!: FormGroup;
     loading: boolean = false;
 

@@ -6,14 +6,14 @@ import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 
 import { FunctionComponent } from './function/function.component';
-import { AddOrUpdateFunctionComponent } from './function/components/add-or-update-function.component';
+import { AddOrUpdateFunctionComponent } from './function/add-or-update/add-or-update-function.component';
 
 import { RoleComponent } from './role/role.component';
-import { AddOrUpdateRoleComponent } from './role/components/add-or-update-role.component';
+import { AddOrUpdateRoleComponent } from './role/add-or-update/add-or-update-role.component';
 
 import { UserComponent } from './user/user.component';
-import { AddOrUpdateUserComponent } from './user/components/add-or-update-user.component';
-import { ChangePassUserComponent } from './user/components/change-pass-user.component';
+import { AddOrUpdateUserComponent } from './user/add-or-update/add-or-update-user.component';
+import { ChangePassUserComponent } from './user/change-pass/change-pass-user.component';
 
 const COMPONENTS: Array<Type<void>> = [
   FunctionComponent,

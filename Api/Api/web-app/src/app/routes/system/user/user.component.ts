@@ -6,11 +6,11 @@ import QueryModel from 'src/app/core/models/query-model';
 import { UserRepository } from 'src/app/infrastructure/repositories/user.repository';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzDrawerRef, NzDrawerService } from 'ng-zorro-antd/drawer';
-import { AddOrUpdateUserComponent } from './components/add-or-update-user.component';
+import { AddOrUpdateUserComponent } from './add-or-update/add-or-update-user.component';
 import gatewayConfig from 'src/app/infrastructure/http/api-gateway-config';
 import { STChange, STColumn, STComponent } from '@delon/abc/st';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { ChangePassUserComponent } from './components/change-pass-user.component';
+import { ChangePassUserComponent } from './change-pass/change-pass-user.component';
 import { EntityStatus } from 'src/app/shared/utils/enums';
 
 @Component({

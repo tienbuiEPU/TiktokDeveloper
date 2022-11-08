@@ -3,13 +3,12 @@ import { _HttpClient } from '@delon/theme';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import GetByPageModel from 'src/app/core/models/get-by-page-model';
 import QueryModel from 'src/app/core/models/query-model';
-import { BaseRepository } from 'src/app/infrastructure/repositories/base.repository';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzDrawerService } from 'ng-zorro-antd/drawer';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { STChange, STColumn, STComponent } from '@delon/abc/st';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { CategoriesAddOrUpdateTypeAttributeComponent } from './components/add-or-update-type-attribute/add-or-update-type-attribute.component';
+import { AddOrUpdateTypeAttributeComponent } from './add-or-update/add-or-update-type-attribute.component';
 import { TypeAttributeRepository } from 'src/app/infrastructure/repositories/type-attribute.repository';
 
 @Component({
@@ -74,8 +73,7 @@ export class CategoriesTypeAttributeComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private modalSrv: NzModalService,
-    private baseRepository: BaseRepository,
-    private dataRepository: TypeAttributeRepository,
+    private typeAttributeRepository: TypeAttributeRepository,
     private message: NzMessageService,
     private drawerService: NzDrawerService,
     private nzNotificationService: NzNotificationService
@@ -126,7 +124,7 @@ export class CategoriesTypeAttributeComponent implements OnInit {
     // }
     try {
       this.loading = true;
-      const resp = await this.dataRepository.getByPage(this.paging);
+      const resp = await this.typeAttributeRepository.getByPage(this.paging);
 
       if (resp.meta?.error_code == 200) {
         this.data = resp.data;
@@ -144,18 +142,18 @@ export class CategoriesTypeAttributeComponent implements OnInit {
   }
 
   addOrUpdate(record?: any): void {
-    const drawerRef = this.drawerService.create<CategoriesAddOrUpdateTypeAttributeComponent>({
+    const drawerRef = this.drawerService.create<AddOrUpdateTypeAttributeComponent>({
       nzTitle: record ? `Sửa: ${record.Name}` : 'Thêm mới',
       // record.khoa_chinh
       nzWidth: '65vw',
-      nzContent: CategoriesAddOrUpdateTypeAttributeComponent,
+      nzContent: AddOrUpdateTypeAttributeComponent,
       nzContentParams: {
         record,
 
       }
     });
 
-    drawerRef.afterClose.subscribe(data => {
+    drawerRef.afterClose.subscribe((data: any) => {
       if (data) {
         let msg = data.Id ? `Sửa ${data.Name} thành công!` : `Thêm mới ${data.Name} thành công!`;
         this.message.success(msg);
@@ -165,7 +163,7 @@ export class CategoriesTypeAttributeComponent implements OnInit {
   }
 
   async delete(data: any) {
-    const resp = await this.dataRepository.delete(data.TypeAttributeId);
+    const resp = await this.typeAttributeRepository.delete(data);
     if (resp.meta?.error_code == 200) {
       this.message.create('success', `Xóa ${data.Name} thành công!`);
       this.getData();
@@ -175,17 +173,16 @@ export class CategoriesTypeAttributeComponent implements OnInit {
   }
 
   async deletes() {
-    //console.log(this.selectAll);
-    if (this.selectAll?.length) {
-      const selectDel = this.selectAll.map(x => x.TypeAttributeId);
-      const resp = await this.dataRepository.deletes(selectDel);
-      if (resp.meta?.error_code == 200) {
-        this.message.create('success', `Xóa thành công!`);
-        this.getData();
-      } else {
-        this.message.create('error', resp.meta?.error_message ? resp.meta?.error_message : '');
-      }
-    }
+    // if (this.selectAll?.length) {
+    //   const selectDel = this.selectAll.map(x => x.TypeAttributeId);
+    //   const resp = await this.dataRepository.deletes(selectDel);
+    //   if (resp.meta?.error_code == 200) {
+    //     this.message.create('success', `Xóa thành công!`);
+    //     this.getData();
+    //   } else {
+    //     this.message.create('error', resp.meta?.error_message ? resp.meta?.error_message : '');
+    //   }
+    // }
   }
 
   onBack() {

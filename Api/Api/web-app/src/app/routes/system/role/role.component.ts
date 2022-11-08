@@ -3,11 +3,11 @@ import { _HttpClient } from '@delon/theme';
 import { NzModalRef, NzModalService } from 'ng-zorro-antd/modal';
 import GetByPageModel from 'src/app/core/models/get-by-page-model';
 import QueryModel from 'src/app/core/models/query-model';
-import { BaseRepository } from 'src/app/infrastructure/repositories/base.repository';
+import { RoleRepository } from 'src/app/infrastructure/repositories/role.repository';
 import { Location } from '@angular/common';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzDrawerRef, NzDrawerService } from 'ng-zorro-antd/drawer';
-import { AddOrUpdateRoleComponent } from './components/add-or-update-role.component';
+import { AddOrUpdateRoleComponent } from './add-or-update/add-or-update-role.component';
 import { STChange, STColumn, STComponent } from '@delon/abc/st';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 
@@ -61,7 +61,7 @@ export class RoleComponent implements OnInit {
 
   constructor(
     private modalSrv: NzModalService,
-    private baseRepository: BaseRepository,
+    private roleRepository: RoleRepository,
     private message: NzMessageService,
     private drawerService: NzDrawerService,
     private nzNotificationService: NzNotificationService
@@ -108,7 +108,7 @@ export class RoleComponent implements OnInit {
 
     try {
       this.loading = true;
-      const resp = await this.baseRepository.getByPage('/functionrole/GetByPage', this.paging);
+      const resp = await this.roleRepository.getByPage(this.paging);
 
       if (resp.meta?.error_code == 200) {
         this.data = resp.data;
@@ -133,7 +133,7 @@ export class RoleComponent implements OnInit {
       nzContentParams: { record, listFunctionInput: this.listFunctionInput }
     });
 
-    drawerRef.afterClose.subscribe(data => {
+    drawerRef.afterClose.subscribe((data : any) => {
       if (data) {
         let msg = data.RoleId ? `Sửa thông tin quyền ${data.Name} thành công!` : `Thêm mới quyền ${data.Name} thành công!`;
         this.message.create('success', msg);
@@ -143,7 +143,7 @@ export class RoleComponent implements OnInit {
   }
 
   async delete(data: any) {
-    const resp = await this.baseRepository.delete('/functionrole/' + data.RoleId);
+    const resp = await this.roleRepository.delete(data);
     if (resp.meta?.error_code == 200) {
       this.message.create('success', `Xóa quyền ${data.Name} thành công!`);
       this.getData();
@@ -163,13 +163,13 @@ export class RoleComponent implements OnInit {
   }
 
   async getListFunction() {
-    const resp = await this.baseRepository.get('/function/listFunction');
-    if (resp.meta?.error_code == 200) {
-      this.listFunctionInput = resp.data;
-    } else {
-      this.modalSrv.error({
-        nzTitle: 'Không lấy được dữ liệu.'
-      });
-    }
+    //const resp = await this.baseRepository.get('/function/listFunction');
+    //if (resp.meta?.error_code == 200) {
+    //  this.listFunctionInput = resp.data;
+    //} else {
+    //  this.modalSrv.error({
+    //    nzTitle: 'Không lấy được dữ liệu.'
+    //  });
+    //}
   }
 }

@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { NzDrawerRef } from 'ng-zorro-antd/drawer';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { BaseRepository } from 'src/app/infrastructure/repositories/base.repository';
+import { FunctionRepository } from 'src/app/infrastructure/repositories/function.repository';
 import { dataToTreeNode } from 'src/app/shared/utils/data-to-tree-node';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
 import GetByPageModel from 'src/app/core/models/get-by-page-model';
@@ -22,7 +22,7 @@ export class AddOrUpdateFunctionComponent implements OnInit {
     @Input() record: NzSafeAny;
 
     constructor(private drawerRef: NzDrawerRef<string>, private fb: FormBuilder,
-        private baseRepository: BaseRepository, private modalSrv: NzModalService) { }
+      private functionRepository: FunctionRepository, private modalSrv: NzModalService) { }
 
     ngOnInit(): void {
         this.getAllData();
@@ -49,7 +49,7 @@ export class AddOrUpdateFunctionComponent implements OnInit {
         paging.order_by = 'Name Asc';
         paging.page_size = -1;
 
-        const resp = await this.baseRepository.getByPage('/Function/GetByPage', paging);
+      const resp = await this.functionRepository.getByPage(paging);
         if (resp.meta?.error_code == 200) {
             this.dataAll = dataToTreeNode(resp.data, "FunctionId", "Name", "FunctionParentId", undefined, 0, false);
         } else {
@@ -64,7 +64,7 @@ export class AddOrUpdateFunctionComponent implements OnInit {
         let data = { ...this.validateForm.value };
         data.FunctionParentId = data.FunctionParentId ? data.FunctionParentId : 0;
 
-        const resp = data.FunctionId ? await this.baseRepository.update('/Function/' + data.FunctionId, data) : await this.baseRepository.addNew('/Function', data);
+      const resp = data.FunctionId ? await this.functionRepository.update(data) : await this.functionRepository.addNew(data);
         if (resp.meta?.error_code == 200) {
             this.loading = false;
             this.drawerRef.close(data);

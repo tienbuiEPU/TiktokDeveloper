@@ -6,17 +6,14 @@ import { STChange, STColumn, STComponent } from '@delon/abc/st';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
 import { NzDrawerService } from 'ng-zorro-antd/drawer';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import GetByPageModel from 'src/app/core/models/get-by-page-model';
-import { NzModalService } from 'ng-zorro-antd/modal';
 import { TypeAttributeRepository } from 'src/app/infrastructure/repositories/type-attribute.repository';
-import QueryModel from 'src/app/core/models/query-model';
-import { CategoriesAddOrUpdateTypeAttributeItemComponent } from '../add-or-update-type-attribute-item/add-or-update-type-attribute-item.component';
+import { AddOrUpdateTypeAttributeItemComponent } from 'src/app/routes/category/type-attribute-item/add-or-update/add-or-update-type-attribute-item.component';
 
 @Component({
   selector: 'app-categories-add-or-update-type-attribute',
   templateUrl: './add-or-update-type-attribute.component.html',
 })
-export class CategoriesAddOrUpdateTypeAttributeComponent implements OnInit {
+export class AddOrUpdateTypeAttributeComponent implements OnInit {
   validateForm!: FormGroup;
   loading: boolean = false;
 
@@ -103,17 +100,17 @@ export class CategoriesAddOrUpdateTypeAttributeComponent implements OnInit {
   ];
 
   openAddTypeAttributeItem(record?: any): void {
-    const drawerItemRef = this.drawerService.create<CategoriesAddOrUpdateTypeAttributeItemComponent>({
+    const drawerItemRef = this.drawerService.create<AddOrUpdateTypeAttributeItemComponent>({
       nzTitle: record ? `Sửa` : `Thêm mới`,
       // record.khoa_chinh
       nzWidth: '45vw',
-      nzContent: CategoriesAddOrUpdateTypeAttributeItemComponent,
+      nzContent: AddOrUpdateTypeAttributeItemComponent,
       nzContentParams: {
         record
       }
     });
 
-    drawerItemRef.afterClose.subscribe(item => {
+    drawerItemRef.afterClose.subscribe((item : any) => {
       //debugger
       if (item) {
         if (item.TypeAttributeItemId === null) {

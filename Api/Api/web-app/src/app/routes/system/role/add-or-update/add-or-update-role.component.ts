@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { NzDrawerRef } from 'ng-zorro-antd/drawer';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { BaseRepository } from 'src/app/infrastructure/repositories/base.repository';
+import { RoleRepository } from 'src/app/infrastructure/repositories/role.repository';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
 
@@ -21,7 +21,7 @@ export class AddOrUpdateRoleComponent implements OnInit {
     action = { View: false, Create: false, Update: false, Delete: false, Import: false, Export: false, Print: false, Other: false, Menu: false };
     indeterminate = { View: false, Create: false, Update: false, Delete: false, Import: false, Export: false, Print: false, Other: false, Menu: false };
 
-    constructor(private drawerRef: NzDrawerRef<string>, private fb: FormBuilder, private baseRepository: BaseRepository, private message: NzMessageService) { }
+  constructor(private drawerRef: NzDrawerRef<string>, private fb: FormBuilder, private roleRepository: RoleRepository, private message: NzMessageService) { }
 
     ngOnInit(): void {
         this.validateForm = this.fb.group({
@@ -212,7 +212,7 @@ export class AddOrUpdateRoleComponent implements OnInit {
             data.listFunction.push(newFunc);
         });
 
-        const resp = data.RoleId ? await this.baseRepository.update('/functionrole/' + data.RoleId, data) : await this.baseRepository.addNew('/functionrole', data);
+      const resp = data.RoleId ? await this.roleRepository.update(data) : await this.roleRepository.addNew(data);
         if (resp.meta?.error_code == 200) {
             this.loading = false;
             this.drawerRef.close(data);

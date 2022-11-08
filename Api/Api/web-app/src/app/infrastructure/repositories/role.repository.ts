@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
-import GetByPageModel from 'src/app/core/models/get-by-page-model';
 import { BaseHttpClient } from '../http/base-http-client';
+import GetByPageModel from 'src/app/core/models/get-by-page-model';
 import { objectToQueryString } from '../utils/object-to-query-string';
 
 @Injectable({
-    providedIn: 'root',
+  providedIn: 'root',
 })
-export class FunctionRepository {
-  public baseUrl = "/api/function";
+export class RoleRepository {
+  public baseUrl = "/api/role";
 
   constructor(private baseHttpClient: BaseHttpClient) { }
 

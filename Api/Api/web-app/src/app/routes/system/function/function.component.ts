@@ -3,10 +3,10 @@ import { _HttpClient } from '@delon/theme';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import GetByPageModel from 'src/app/core/models/get-by-page-model';
 import QueryModel from 'src/app/core/models/query-model';
-import { BaseRepository } from 'src/app/infrastructure/repositories/base.repository';
+import { FunctionRepository } from 'src/app/infrastructure/repositories/function.repository';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzDrawerService } from 'ng-zorro-antd/drawer';
-import { AddOrUpdateFunctionComponent } from './components/add-or-update-function.component';
+import { AddOrUpdateFunctionComponent } from './add-or-update/add-or-update-function.component';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { STChange, STColumn, STComponent } from '@delon/abc/st';
 import { FormBuilder, FormGroup } from '@angular/forms';
@@ -75,7 +75,7 @@ export class FunctionComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private modalSrv: NzModalService,
-    private baseRepository: BaseRepository,
+    private functionRepository: FunctionRepository,
     private message: NzMessageService,
     private drawerService: NzDrawerService,
     private nzNotificationService: NzNotificationService
@@ -122,7 +122,7 @@ export class FunctionComponent implements OnInit {
 
     try {
       this.loading = true;
-      const resp = await this.baseRepository.getByPage('/Function/GetByPage', this.paging);
+      const resp = await this.functionRepository.getByPage(this.paging);
 
       if (resp.meta?.error_code == 200) {
         this.data = resp.data;
@@ -147,7 +147,7 @@ export class FunctionComponent implements OnInit {
       nzContentParams: { record }
     });
 
-    drawerRef.afterClose.subscribe(data => {
+    drawerRef.afterClose.subscribe((data: any) => {
       if (data) {
         let msg = data.FunctionId ? `Sửa chức năng ${data.Name} thành công!` : `Thêm mới chức năng ${data.Name} thành công!`;
         this.message.success(msg);
@@ -157,7 +157,7 @@ export class FunctionComponent implements OnInit {
   }
 
   async delete(data: any) {
-    const resp = await this.baseRepository.delete('/Function/' + data.FunctionId);
+    const resp = await this.functionRepository.delete(data);
     if (resp.meta?.error_code == 200) {
       this.message.create('success', `Xóa chức năng ${data.Name} thành công!`);
       this.getData();

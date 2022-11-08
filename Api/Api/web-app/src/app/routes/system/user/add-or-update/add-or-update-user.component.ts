@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { NzDrawerRef } from 'ng-zorro-antd/drawer';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { BaseRepository } from 'src/app/infrastructure/repositories/base.repository';
+import { UserRepository } from 'src/app/infrastructure/repositories/user.repository';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import * as CryptoJS from 'crypto-js';
 import { NzUploadFile, NzUploadXHRArgs } from 'ng-zorro-antd/upload';
@@ -29,7 +29,7 @@ export class AddOrUpdateUserComponent implements OnInit {
   constructor(
     private drawerRef: NzDrawerRef<string>,
     private fb: FormBuilder,
-    private baseRepository: BaseRepository,
+    private userRepository: UserRepository,
     private message: NzMessageService,
     private modalSrv: NzModalService
   ) {}
@@ -79,8 +79,8 @@ export class AddOrUpdateUserComponent implements OnInit {
     }
 
     const resp = data.UserId
-      ? await this.baseRepository.update('/UserRole/' + data.UserId, data)
-      : await this.baseRepository.addNew('/UserRole', data);
+      ? await this.userRepository.update(data)
+      : await this.userRepository.addNew(data);
 
     if (resp.meta?.error_code == 200) {
       this.loading = false;
@@ -105,26 +105,26 @@ export class AddOrUpdateUserComponent implements OnInit {
     const formData = new FormData();
     formData.append(file.name, file);
 
-    const resp = await this.baseRepository.uploadImage(formData);
-    this.validateForm.value.Avata = resp?.data.toString();
+    //const resp = await this.baseRepository.uploadImage(formData);
+    //this.validateForm.value.Avata = resp?.data.toString();
   }
 
   async getListRole() {
-    const paging: GetByPageModel = new GetByPageModel();
-    paging.select = 'RoleId,Name,Note';
-    paging.order_by = 'Name Asc';
-    paging.page_size = -1;
+    //const paging: GetByPageModel = new GetByPageModel();
+    //paging.select = 'RoleId,Name,Note';
+    //paging.order_by = 'Name Asc';
+    //paging.page_size = -1;
 
-    const resp = await this.baseRepository.getByPage('/role/GetByPage', paging);
-    if (resp.meta?.error_code == 200) {
-      this.rolesInput = resp.data;
-      this.rolesInput = resp.data.map((x: any) => {
-        return { RoleId: x.RoleId, RoleName: x.Name, FullName: x.Name + (x.Note ? ` (${x.Note})` : ``) };
-      });
-    } else {
-      this.modalSrv.error({
-        nzTitle: 'Không lấy được dữ liệu.'
-      });
-    }
+    //const resp = await this.baseRepository.getByPage('/role/GetByPage', paging);
+    //if (resp.meta?.error_code == 200) {
+    //  this.rolesInput = resp.data;
+    //  this.rolesInput = resp.data.map((x: any) => {
+    //    return { RoleId: x.RoleId, RoleName: x.Name, FullName: x.Name + (x.Note ? ` (${x.Note})` : ``) };
+    //  });
+    //} else {
+    //  this.modalSrv.error({
+    //    nzTitle: 'Không lấy được dữ liệu.'
+    //  });
+    //}
   }
 }
