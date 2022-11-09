@@ -22,7 +22,7 @@ export class UserRepository {
 
   public login(param: any) {
     return this.baseHttpClient.postRequest({
-      url: `${this.baseUrl}login`,
+      url: `${this.baseUrl}/login`,
       body: param,
     });
   }
