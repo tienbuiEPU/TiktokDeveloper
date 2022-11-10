@@ -63,7 +63,7 @@ export class StartupService {
     // mock
     const app: any = {
       // name: `His`,
-      description: `Quản lý bệnh viện`
+      description: `Tiktok`
     };
 
     this.settingService.setApp(app);

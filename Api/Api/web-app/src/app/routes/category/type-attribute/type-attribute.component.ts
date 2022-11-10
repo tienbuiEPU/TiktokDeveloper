@@ -12,10 +12,10 @@ import { AddOrUpdateTypeAttributeComponent } from './add-or-update/add-or-update
 import { TypeAttributeRepository } from 'src/app/infrastructure/repositories/type-attribute.repository';
 
 @Component({
-  selector: 'app-categories-type-attribute',
+  selector: 'app-type-attribute',
   templateUrl: './type-attribute.component.html',
 })
-export class CategoriesTypeAttributeComponent implements OnInit {
+export class TypeAttributeComponent implements OnInit {
   @ViewChild('tableRef', { static: false }) tableRef!: STComponent;
 
   validateForm!: FormGroup;

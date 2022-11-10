@@ -17,9 +17,9 @@ const routes: Routes = [
     canActivate: [SimpleGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: DashboardComponent, data: { title: 'Quản lý bệnh viện' } },
+      { path: 'dashboard', component: DashboardComponent, data: { title: 'Tổng quan' } },
       { path: 'exception', loadChildren: () => import('./exception/exception.module').then(m => m.ExceptionModule) },
-      { path: 'categories', loadChildren: () => import('./category/category.module').then(m => m.CategoriesModule) },
+      { path: 'category', loadChildren: () => import('./category/category.module').then(m => m.CategoryModule) },
       { path: 'system', loadChildren: () => import('./system/system.module').then(m => m.SystemModule) },
     ]
   },

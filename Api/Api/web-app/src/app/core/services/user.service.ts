@@ -28,7 +28,7 @@ export class UserService {
     const passwordEncryp = CryptoJS.MD5(password).toString();
 
     const resp: ResponseModel = await this.authenRepository.login({
-      email: username, password: passwordEncryp
+      username: username, password: passwordEncryp
     }) || {};
     const { meta, data } = resp;
 
@@ -37,7 +37,7 @@ export class UserService {
 
       this.settingService.setUser({ ...param, roleLevel, ...user, password: passwordEncryp });
       this.tokenService.set({
-        token: data?.access_token,
+        token: data?.AccessToken,
         refresh_token: data?.refresh_token,
         expired: +new Date() + 1000 * 60 * 23 * 59
       });

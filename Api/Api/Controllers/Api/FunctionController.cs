@@ -20,7 +20,7 @@ using System.Web;
 
 namespace Api.Controllers.Api
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class FunctionController : ControllerBase
