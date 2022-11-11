@@ -40,14 +40,14 @@ namespace Api.Controllers.Api
         public IActionResult GetByPage([FromQuery] FilteredPagination paging)
         {
             DefaultResponse def = new DefaultResponse();
-            
-            //var identity = (ClaimsIdentity)User.Identity;
-            //string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
-            //if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)AppEnums.Action.VIEW))
-            //{
-            //    def.meta = new Meta(222, ApiConstants.MessageResource.NOPERMISION_VIEW_MESSAGE);
-            //    return Ok(def);
-            //}
+
+            var identity = (ClaimsIdentity)User.Identity;
+            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
+            if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)AppEnums.Action.VIEW))
+            {
+                def.meta = new Meta(222, ApiConstants.MessageResource.NOPERMISION_VIEW_MESSAGE);
+                return Ok(def);
+            }
 
             try
             {
@@ -373,9 +373,9 @@ namespace Api.Controllers.Api
                     {
                         transaction.Rollback();
                         log.Error("DbUpdateException:" + e);
-                        if (RoleExists(data.Id))
+                        if (!RoleExists(data.Id))
                         {
-                            def.meta = new Meta(212, "Đã tồn tại Id trên hệ thống!");
+                            def.meta = new Meta(212, "Không tồn tại Id trên hệ thống!");
                             return Ok(def);
                         }
                         else

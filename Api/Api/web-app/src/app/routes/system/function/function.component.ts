@@ -28,8 +28,8 @@ export class FunctionComponent implements OnInit {
   selectAll?: any[] = [];
 
   columns: STColumn[] = [
-    { title: '', index: 'Id', type: 'checkbox' },
-    { title: 'STT', type: 'no', width: 40 },
+    // { title: '', index: 'Id', type: 'checkbox' },
+    { title: 'Stt', type: 'no', width: 40 },
     { title: 'Mã chức năng', index: 'Code' },
     { title: 'Tên chức năng', index: 'Name', width: '22%' },
     { title: 'Url', index: 'Url' },
@@ -149,7 +149,7 @@ export class FunctionComponent implements OnInit {
 
     drawerRef.afterClose.subscribe((data: any) => {
       if (data) {
-        let msg = data.FunctionId ? `Sửa chức năng ${data.Name} thành công!` : `Thêm mới chức năng ${data.Name} thành công!`;
+        let msg = data.Id ? `Sửa chức năng ${data.Name} thành công!` : `Thêm mới chức năng ${data.Name} thành công!`;
         this.message.success(msg);
         this.getData();
       }

@@ -242,7 +242,8 @@ namespace Api.Common.Services
             foreach (var stringProperty in stringProperties)
             {
                 string currentValue = (string)stringProperty.GetValue(obj, null);
-                stringProperty.SetValue(obj, currentValue.Trim(), null);
+                if(currentValue != null)
+                    stringProperty.SetValue(obj, currentValue.Trim(), null);
             }
 
             return obj;

@@ -81,7 +81,7 @@ export class ChangePassUserComponent implements OnInit {
     let data = { ...this.validateForm.value };
 
     if (data.Password) {
-      data.PasswordNew = CryptoJS.MD5(data.Password).toString();
+      data.NewPassword = CryptoJS.MD5(data.Password).toString();
     }
 
     delete data['Password'];

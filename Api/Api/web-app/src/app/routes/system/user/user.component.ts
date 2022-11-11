@@ -30,7 +30,7 @@ export class UserComponent implements OnInit {
   srcImg = gatewayConfig.domain_thumb_img;
 
   columns: STColumn[] = [
-    { title: '', index: 'Id', type: 'checkbox' },
+    // { title: '', index: 'Id', type: 'checkbox' },
     { title: 'Stt', type: 'no', width: 40 },
     { title: 'Avatar', index: 'Avatar', type: 'img', width: 60 },
     { title: 'Tên người dùng', index: 'FullName', sort: true },
@@ -102,7 +102,7 @@ export class UserComponent implements OnInit {
     private message: NzMessageService,
     private drawerService: NzDrawerService,
     private nzNotificationService: NzNotificationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.getData();

@@ -15,7 +15,7 @@ namespace Api.Common.ViewModels.Firestore
         public int? TargetAction { get; set; }
         public int? ProjectId { get; set; }
         public string Logs { get; set; }
-        public TypeAction? Type { get; set; }
+        public int? Type { get; set; }
         public long? UserId { get; set; }
         public EntityStatus? Status { get; set; }
     }

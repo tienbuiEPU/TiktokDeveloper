@@ -22,13 +22,13 @@ export class AddOrUpdateFunctionComponent implements OnInit {
     @Input() record: NzSafeAny;
 
     constructor(private drawerRef: NzDrawerRef<string>, private fb: FormBuilder,
-      private functionRepository: FunctionRepository, private modalSrv: NzModalService) { }
+        private functionRepository: FunctionRepository, private modalSrv: NzModalService) { }
 
     ngOnInit(): void {
         this.getAllData();
 
         this.validateForm = this.fb.group({
-            FunctionId: [this.record ? this.record.FunctionId : undefined],
+            Id: [this.record ? this.record.Id : undefined],
             Code: [this.record ? this.record.Code : undefined, [Validators.required]],
             Name: [this.record ? this.record.Name : undefined, [Validators.required]],
             Url: [this.record ? this.record.Url : undefined, [Validators.required]],
@@ -45,18 +45,19 @@ export class AddOrUpdateFunctionComponent implements OnInit {
 
     async getAllData() {
         const paging: GetByPageModel = new GetByPageModel();
-        paging.select = 'FunctionId, Name, FunctionParentId';
+        paging.select = 'Id, Name, FunctionParentId';
         paging.order_by = 'Name Asc';
         paging.page_size = -1;
 
-      const resp = await this.functionRepository.getByPage(paging);
+        const resp = await this.functionRepository.getByPage(paging);
         if (resp.meta?.error_code == 200) {
-            this.dataAll = dataToTreeNode(resp.data, "FunctionId", "Name", "FunctionParentId", undefined, 0, false);
-        } else {
-            this.modalSrv.error({
-                nzTitle: 'Không lấy được dữ liệu.'
-            });
+            this.dataAll = dataToTreeNode(resp.data, "Id", "Name", "FunctionParentId", undefined, 0, false);
         }
+        // else {
+        //     this.modalSrv.error({
+        //         nzTitle: 'Không lấy được dữ liệu.'
+        //     });
+        // }
     }
 
     async submitForm() {
@@ -64,7 +65,7 @@ export class AddOrUpdateFunctionComponent implements OnInit {
         let data = { ...this.validateForm.value };
         data.FunctionParentId = data.FunctionParentId ? data.FunctionParentId : 0;
 
-      const resp = data.FunctionId ? await this.functionRepository.update(data) : await this.functionRepository.addNew(data);
+        const resp = data.Id ? await this.functionRepository.update(data) : await this.functionRepository.addNew(data);
         if (resp.meta?.error_code == 200) {
             this.loading = false;
             this.drawerRef.close(data);

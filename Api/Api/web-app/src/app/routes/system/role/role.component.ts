@@ -28,7 +28,7 @@ export class RoleComponent implements OnInit {
   selectAll?: any[] = [];
 
   columns: STColumn[] = [
-    { title: '', index: 'Id', type: 'checkbox' },
+    // { title: '', index: 'Id', type: 'checkbox' },
     { title: 'Stt', type: 'no', width: 40 },
     { title: 'Mã quyền', index: 'Code' },
     { title: 'Tên quyền', index: 'Name', width: '25%' },
@@ -65,7 +65,7 @@ export class RoleComponent implements OnInit {
     private message: NzMessageService,
     private drawerService: NzDrawerService,
     private nzNotificationService: NzNotificationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.getData();
@@ -133,7 +133,7 @@ export class RoleComponent implements OnInit {
       nzContentParams: { record, listFunctionInput: this.listFunctionInput }
     });
 
-    drawerRef.afterClose.subscribe((data : any) => {
+    drawerRef.afterClose.subscribe((data: any) => {
       if (data) {
         let msg = data.RoleId ? `Sửa thông tin quyền ${data.Name} thành công!` : `Thêm mới quyền ${data.Name} thành công!`;
         this.message.create('success', msg);

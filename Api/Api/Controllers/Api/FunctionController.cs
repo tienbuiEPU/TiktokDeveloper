@@ -4,12 +4,14 @@ using Api.Common.Services;
 using Api.Common.ViewModels.Common;
 using Api.Entities;
 using Api.Models.Data;
+using Api.Models.Dto;
 using Api.Persistence;
 using AutoMapper;
 using log4net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,14 +42,14 @@ namespace Api.Controllers.Api
         public IActionResult GetByPage([FromQuery] FilteredPagination paging)
         {
             DefaultResponse def = new DefaultResponse();
-            
-            //var identity = (ClaimsIdentity)User.Identity;
-            //string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
-            //if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)AppEnums.Action.VIEW))
-            //{
-            //    def.meta = new Meta(222, ApiConstants.MessageResource.NOPERMISION_VIEW_MESSAGE);
-            //    return Ok(def);
-            //}
+
+            var identity = (ClaimsIdentity)User.Identity;
+            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
+            if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)AppEnums.Action.VIEW))
+            {
+                def.meta = new Meta(222, ApiConstants.MessageResource.NOPERMISION_VIEW_MESSAGE);
+                return Ok(def);
+            }
 
             try
             {
@@ -193,6 +195,12 @@ namespace Api.Controllers.Api
                     {
                         await _context.SaveChangesAsync();
 
+                        //thêm LogAction
+                        LogActionModel logActionModel = new LogActionModel("Thêm mới chức năng", "Function", input.Id, HttpContext.Connection.RemoteIpAddress.ToString(), JsonConvert.SerializeObject(input), (int)AppEnums.Action.CREATE, userId, fullName);
+                        LogAction logAction = _mapper.Map<LogAction>(logActionModel);
+                        _context.Add(logAction);
+                        await _context.SaveChangesAsync();
+
                         if (input.Id > 0)
                             transaction.Commit();
                         else
@@ -265,7 +273,7 @@ namespace Api.Controllers.Api
                     return Ok(def);
                 }
 
-                Function data = await _context.Functions.FindAsync(id);
+                Function data = await _context.Functions.AsNoTracking().Where(e => e.Id == id).FirstOrDefaultAsync();
                 if(data == null)
                 {
                     def.meta = new Meta(404, ApiConstants.MessageResource.NOT_FOUND_UPDATE_MESSAGE);
@@ -294,7 +302,7 @@ namespace Api.Controllers.Api
                     try
                     {
                         await _context.SaveChangesAsync();
-
+                        
                         if (data.Id > 0)
                             transaction.Commit();
                         else
@@ -308,9 +316,9 @@ namespace Api.Controllers.Api
                     {
                         transaction.Rollback();
                         log.Error("DbUpdateException:" + e);
-                        if (FunctionExists(data.Id))
+                        if (!FunctionExists(data.Id))
                         {
-                            def.meta = new Meta(212, "Đã tồn tại Id trên hệ thống!");
+                            def.meta = new Meta(212, "Không tồn tại Id trên hệ thống!");
                             return Ok(def);
                         }
                         else

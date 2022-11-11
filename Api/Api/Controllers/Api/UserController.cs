@@ -21,6 +21,7 @@ using Microsoft.Extensions.Configuration;
 using System.Web;
 using System.Linq.Dynamic.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Api.Controllers.Api
 {
@@ -28,7 +29,7 @@ namespace Api.Controllers.Api
     [ApiController]
     public class UserController : ControllerBase
     {
-        private static readonly ILog log = LogMaster.GetLogger("function", "function");
+        private static readonly ILog log = LogMaster.GetLogger("user", "user");
         private static string functionCode = "USER_MANAGEMENT";
         private readonly ApiDbContext _context;
         private IMapper _mapper;
@@ -42,6 +43,7 @@ namespace Api.Controllers.Api
         }
 
         #region user management
+        [Authorize]
         [HttpGet("GetByPage")]
         public IActionResult GetByPage([FromQuery] FilteredPagination paging)
         {
@@ -126,6 +128,7 @@ namespace Api.Controllers.Api
         }
 
         // GET: api/User/1
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -165,6 +168,7 @@ namespace Api.Controllers.Api
         }
 
         // POST: api/User
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Post(UserData input)
         {
@@ -267,6 +271,7 @@ namespace Api.Controllers.Api
         }
 
         // PUT: api/User/1
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] UserData input)
         {
@@ -381,9 +386,9 @@ namespace Api.Controllers.Api
                     {
                         transaction.Rollback();
                         log.Error("DbUpdateException:" + e);
-                        if (UserExists(data.Id))
+                        if (!UserExists(data.Id))
                         {
-                            def.meta = new Meta(212, "Đã tồn tại Id trên hệ thống!");
+                            def.meta = new Meta(212, "Không tồn tại Id trên hệ thống!");
                             return Ok(def);
                         }
                         else
@@ -403,6 +408,7 @@ namespace Api.Controllers.Api
         }
 
         // DELETE: api/User/1
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -484,11 +490,173 @@ namespace Api.Controllers.Api
         {
             return _context.Users.Count(e => e.Id == id) > 0;
         }
+
+        [Authorize]
+        [HttpPut("changePassUser/{id}")]
+        public async Task<ActionResult> ChangePassUser(int id, [FromBody] ChangePassUserModel input)
+        {
+            DefaultResponse def = new DefaultResponse();
+
+            var identity = (ClaimsIdentity)User.Identity;
+            int userId = int.Parse(identity.Claims.Where(c => c.Type == "Id").Select(c => c.Value).SingleOrDefault());
+            string fullName = identity.Claims.Where(c => c.Type == "FullName").Select(c => c.Value).SingleOrDefault() ?? string.Empty;
+            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
+            if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)AppEnums.Action.UPDATE))
+            {
+                def.meta = new Meta(222, ApiConstants.MessageResource.NOPERMISION_UPDATE_MESSAGE);
+                return Ok(def);
+            }
+
+            try
+            {
+                input = (ChangePassUserModel)UtilsService.TrimStringPropertyTypeObject(input);
+
+                if (!ModelState.IsValid)
+                {
+                    def.meta = new Meta(400, ApiConstants.MessageResource.BAD_REQUEST_MESSAGE);
+                    return Ok(def);
+                }
+
+                if (input.NewPassword == null || input.NewPassword == "")
+                {
+                    def.meta = new Meta(400, "Dữ liệu không hợp lệ!");
+                    return Ok(def);
+                }
+
+                User data = await _context.Users.FindAsync(id);
+                if (data == null)
+                {
+                    def.meta = new Meta(404, "Không tìm thấy tài khoản người dùng!");
+                    return Ok(def);
+                }
+
+                using (var transaction = _context.Database.BeginTransaction())
+                {
+                    string newPassword = data.KeyLock.Trim() + data.RegEmail.Trim() + data.Id + input.NewPassword.Trim();
+                    newPassword = UtilsService.GetMD5Hash(newPassword);
+
+                    data.Password = newPassword;
+                    data.UpdatedAt = DateTime.Now;
+                    data.UpdatedById = userId;
+                    data.UpdatedBy = fullName;
+
+                    _context.Update(data);
+
+                    try
+                    {
+                        await _context.SaveChangesAsync();
+
+                        if (data.Id > 0)
+                            transaction.Commit();
+                        else
+                            transaction.Rollback();
+
+                        def.meta = new Meta(200, ApiConstants.MessageResource.UPDATE_SUCCESS);
+                        def.data = data;
+                        return Ok(def);
+                    }
+                    catch (DbUpdateException e)
+                    {
+                        transaction.Rollback();
+                        log.Error("DbUpdateException:" + e);
+                        if (!UserExists(data.Id))
+                        {
+                            def.meta = new Meta(212, "Không tồn tại Id trên hệ thống!");
+                            return Ok(def);
+                        }
+                        else
+                        {
+                            def.meta = new Meta(500, ApiConstants.MessageResource.ERROR_500_MESSAGE);
+                            return Ok(def);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error("Exception:" + e);
+                def.meta = new Meta(500, ApiConstants.MessageResource.ERROR_500_MESSAGE);
+                return Ok(def);
+            }
+        }
+
+        [Authorize]
+        [Route("changeStatusUser/{id}/{stt}")]
+        [HttpPut]
+        public async Task<ActionResult> ChangeStatusUser(int id, byte stt)
+        {
+            DefaultResponse def = new DefaultResponse();
+
+            var identity = (ClaimsIdentity)User.Identity;
+            int userId = int.Parse(identity.Claims.Where(c => c.Type == "Id").Select(c => c.Value).SingleOrDefault());
+            string fullName = identity.Claims.Where(c => c.Type == "FullName").Select(c => c.Value).SingleOrDefault() ?? string.Empty;
+            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
+            if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)AppEnums.Action.UPDATE))
+            {
+                def.meta = new Meta(222, ApiConstants.MessageResource.NOPERMISION_UPDATE_MESSAGE);
+                return Ok(def);
+            }
+
+            try
+            {
+                User data = await _context.Users.FindAsync(id);
+                if (data == null)
+                {
+                    def.meta = new Meta(404, "Không tìm thấy tài khoản người dùng!");
+                    return Ok(def);
+                }
+
+                using (var transaction = _context.Database.BeginTransaction())
+                {
+                    data.UpdatedAt = DateTime.Now;
+                    data.UpdatedById = userId;
+                    data.UpdatedBy = fullName;
+                    data.Status = (AppEnums.EntityStatus)stt;
+
+                    _context.Update(data);
+
+                    try
+                    {
+                        await _context.SaveChangesAsync();
+
+                        if (data.Id > 0)
+                            transaction.Commit();
+                        else
+                            transaction.Rollback();
+
+                        def.meta = new Meta(200, ApiConstants.MessageResource.UPDATE_SUCCESS);
+                        def.data = data;
+                        return Ok(def);
+                    }
+                    catch (DbUpdateException e)
+                    {
+                        transaction.Rollback();
+                        log.Error("DbUpdateException:" + e);
+                        if (!UserExists(data.Id))
+                        {
+                            def.meta = new Meta(212, "Không tồn tại Id trên hệ thống!");
+                            return Ok(def);
+                        }
+                        else
+                        {
+                            def.meta = new Meta(500, ApiConstants.MessageResource.ERROR_500_MESSAGE);
+                            return Ok(def);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error("Exception:" + e);
+                def.meta = new Meta(500, ApiConstants.MessageResource.ERROR_500_MESSAGE);
+                return Ok(def);
+            }
+        }
         #endregion
 
         #region actions by user
         [HttpPost("login")]
-        public async Task<ActionResult> Login([FromBody] LoginModel loginModel)
+        public ActionResult Login([FromBody] LoginModel loginModel)
         {
             DefaultResponse def = new DefaultResponse();
             try
@@ -628,6 +796,10 @@ namespace Api.Controllers.Api
                                 userLoginData.BaseUrlImgThumb = _configuration["AppSettings:BaseUrlImgThumb"];
                                 userLoginData.BaseUrlFile = _configuration["AppSettings:BaseUrlFile"];
 
+                                userLoginData.Password = null;
+                                userLoginData.KeyLock = null;
+                                userLoginData.RegEmail = null;
+
                                 def.data = userLoginData;
                                 def.meta = new Meta(200, "Đăng nhập thành công!");
                                 return Ok(def);
@@ -706,6 +878,233 @@ namespace Api.Controllers.Api
             }
             return new List<MenuData>();
         }
+
+        [Authorize]
+        [HttpPut("changePass/{id}")]
+        public async Task<ActionResult> ChangePass(int id, [FromBody] ChangePassUserModel input)
+        {
+            DefaultResponse def = new DefaultResponse();
+
+            var identity = (ClaimsIdentity)User.Identity;
+            int userId = int.Parse(identity.Claims.Where(c => c.Type == "Id").Select(c => c.Value).SingleOrDefault());
+            string fullName = identity.Claims.Where(c => c.Type == "FullName").Select(c => c.Value).SingleOrDefault() ?? string.Empty;
+            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
+
+            if(id != userId)
+            {
+                def.meta = new Meta(222, "Id tài khoản không hợp lệ!");
+                return Ok(def);
+            }
+
+            try
+            {
+                input = (ChangePassUserModel)UtilsService.TrimStringPropertyTypeObject(input);
+
+                if (!ModelState.IsValid)
+                {
+                    def.meta = new Meta(400, ApiConstants.MessageResource.BAD_REQUEST_MESSAGE);
+                    return Ok(def);
+                }
+
+                if (input.CurrentPassword == null || input.NewPassword == null || input.CurrentPassword == "" || input.NewPassword == "")
+                {
+                    def.meta = new Meta(400, "Dữ liệu không hợp lệ!");
+                    return Ok(def);
+                }
+
+                User data = await _context.Users.FindAsync(id);
+                if (data == null)
+                {
+                    def.meta = new Meta(404, "Không tìm thấy tài khoản người dùng!");
+                    return Ok(def);
+                }
+
+                //check password old
+                string password = data.KeyLock.Trim() + data.RegEmail.Trim() + data.Id + input.CurrentPassword.Trim();
+                password = UtilsService.GetMD5Hash(password);
+                if (data.Password.Trim() != password)
+                {
+                    def.meta = new Meta(213, "Mật khẩu cũ không chính xác!");
+                    return Ok(def);
+                }
+
+                using (var transaction = _context.Database.BeginTransaction())
+                {
+                    string newPassword = data.KeyLock.Trim() + data.RegEmail.Trim() + data.Id + input.NewPassword.Trim();
+                    newPassword = UtilsService.GetMD5Hash(newPassword);
+
+                    data.Password = newPassword;
+                    data.UpdatedAt = DateTime.Now;
+                    data.UpdatedById = userId;
+                    data.UpdatedBy = fullName;
+
+                    _context.Update(data);
+
+                    try
+                    {
+                        await _context.SaveChangesAsync();
+
+                        if (data.Id > 0)
+                            transaction.Commit();
+                        else
+                            transaction.Rollback();
+
+                        def.meta = new Meta(200, ApiConstants.MessageResource.UPDATE_SUCCESS);
+                        def.data = data;
+                        return Ok(def);
+                    }
+                    catch (DbUpdateException e)
+                    {
+                        transaction.Rollback();
+                        log.Error("DbUpdateException:" + e);
+                        if (!UserExists(data.Id))
+                        {
+                            def.meta = new Meta(212, "Không tồn tại Id trên hệ thống!");
+                            return Ok(def);
+                        }
+                        else
+                        {
+                            def.meta = new Meta(500, ApiConstants.MessageResource.ERROR_500_MESSAGE);
+                            return Ok(def);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error("Exception:" + e);
+                def.meta = new Meta(500, ApiConstants.MessageResource.ERROR_500_MESSAGE);
+                return Ok(def);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("getInfo/{id}")]
+        public async Task<IActionResult> GetInfo(int id)
+        {
+            DefaultResponse def = new DefaultResponse();
+
+            var identity = (ClaimsIdentity)User.Identity;
+            int userId = int.Parse(identity.Claims.Where(c => c.Type == "Id").Select(c => c.Value).SingleOrDefault());
+            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
+            if (userId != id)
+            {
+                def.meta = new Meta(222, "Không có quyền lấy thông tin!");
+                return Ok(def);
+            }
+
+            try
+            {
+                User data = await _context.Users.FindAsync(id);
+
+                if (data == null)
+                {
+                    def.meta = new Meta(404, ApiConstants.MessageResource.NOT_FOUND_VIEW_MESSAGE);
+                    return Ok(def);
+                }
+
+                data.RegEmail = null;
+                data.KeyLock = null;
+                data.Password = null;
+
+                def.meta = new Meta(200, ApiConstants.MessageResource.ACCTION_SUCCESS);
+                def.data = data;
+                return Ok(def);
+            }
+            catch (Exception ex)
+            {
+                log.Error("GetByPage Error:" + ex);
+                def.meta = new Meta(500, ApiConstants.MessageResource.ERROR_500_MESSAGE);
+                return Ok(def);
+            }
+        }
+
+        [Authorize]
+        [HttpPut("changeInfoUser/{id}")]
+        public async Task<ActionResult> ChangeInfoUser(int id, [FromBody] User input)
+        {
+            DefaultResponse def = new DefaultResponse();
+
+            var identity = (ClaimsIdentity)User.Identity;
+            int userId = int.Parse(identity.Claims.Where(c => c.Type == "Id").Select(c => c.Value).SingleOrDefault());
+            string fullName = identity.Claims.Where(c => c.Type == "FullName").Select(c => c.Value).SingleOrDefault() ?? string.Empty;
+            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
+
+            if (id != userId)
+            {
+                def.meta = new Meta(222, "Id tài khoản không hợp lệ!");
+                return Ok(def);
+            }
+
+            try
+            {
+                input = (User)UtilsService.TrimStringPropertyTypeObject(input);
+
+                if (!ModelState.IsValid)
+                {
+                    def.meta = new Meta(400, ApiConstants.MessageResource.BAD_REQUEST_MESSAGE);
+                    return Ok(def);
+                }
+
+                User data = await _context.Users.FindAsync(id);
+                if (data == null)
+                {
+                    def.meta = new Meta(404, "Không tìm thấy tài khoản người dùng!");
+                    return Ok(def);
+                }
+
+                using (var transaction = _context.Database.BeginTransaction())
+                {
+                    data.FullName = input.FullName;
+                    data.Dob = input.Dob;
+                    data.Phone = input.Phone;
+                    data.Email = input.Email;
+                    data.Address = input.Address;
+                    data.Avatar = input.Avatar;
+                    data.UpdatedAt = DateTime.Now;
+                    data.UpdatedById = userId;
+                    data.UpdatedBy = fullName;
+
+                    _context.Update(data);
+
+                    try
+                    {
+                        await _context.SaveChangesAsync();
+
+                        if (data.Id > 0)
+                            transaction.Commit();
+                        else
+                            transaction.Rollback();
+
+                        def.meta = new Meta(200, ApiConstants.MessageResource.UPDATE_SUCCESS);
+                        def.data = data;
+                        return Ok(def);
+                    }
+                    catch (DbUpdateException e)
+                    {
+                        transaction.Rollback();
+                        log.Error("DbUpdateException:" + e);
+                        if (!UserExists(data.Id))
+                        {
+                            def.meta = new Meta(212, "Không tồn tại Id trên hệ thống!");
+                            return Ok(def);
+                        }
+                        else
+                        {
+                            def.meta = new Meta(500, ApiConstants.MessageResource.ERROR_500_MESSAGE);
+                            return Ok(def);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error("Exception:" + e);
+                def.meta = new Meta(500, ApiConstants.MessageResource.ERROR_500_MESSAGE);
+                return Ok(def);
+            }
+        }
+
         #endregion
     }
 }

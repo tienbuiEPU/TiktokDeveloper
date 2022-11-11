@@ -31,6 +31,7 @@ namespace Api.Persistence
         public virtual DbSet<FunctionRole> FunctionRoles { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<UserRole> UserRoles { get; set; }
+        public virtual DbSet<LogAction> LogActions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

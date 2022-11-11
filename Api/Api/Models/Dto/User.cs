@@ -10,4 +10,10 @@ namespace Api.Models.Dto
         public string username { get; set; }
         public string password { get; set; }
     }
+
+    public class ChangePassUserModel
+    {
+        public string CurrentPassword { get; set; }
+        public string NewPassword { get; set; }
+    }
 }

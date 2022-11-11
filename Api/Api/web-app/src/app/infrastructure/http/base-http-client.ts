@@ -79,10 +79,26 @@ export class BaseHttpClient {
   }
 
   public postRequest(params?: IRequestParameter, stringifyBody: boolean = true): Promise<ResponseModel> {
+    if (params) {
+      Object.keys(params.body).forEach(key => {
+        if (params.body[key] === null) {
+          delete params.body[key];
+        }
+      });
+    }
+
     return this.baseRequest("POST", params, stringifyBody);
   }
 
   public putRequest(params?: IRequestParameter, stringifyBody: boolean = true): Promise<ResponseModel> {
+    if (params) {
+      Object.keys(params.body).forEach(key => {
+        if (params.body[key] === null) {
+          delete params.body[key];
+        }
+      });
+    }
+
     return this.baseRequest("PUT", params, stringifyBody);
   }
 

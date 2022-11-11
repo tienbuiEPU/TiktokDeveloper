@@ -66,7 +66,7 @@ export class UserRepository {
 
   public async changeStatus(param: any, status: number) {
     return this.baseHttpClient.putRequest({
-      url: `${this.baseUrl}/lock/${param.Id}/${status}`,
+      url: `${this.baseUrl}/changeStatusUser/${param.Id}/${status}`,
       body: undefined
     });
   }
