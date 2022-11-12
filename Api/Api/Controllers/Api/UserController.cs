@@ -22,6 +22,7 @@ using System.Web;
 using System.Linq.Dynamic.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using Newtonsoft.Json;
 
 namespace Api.Controllers.Api
 {
@@ -215,6 +216,8 @@ namespace Api.Controllers.Api
 
                 using (var transaction = _context.Database.BeginTransaction())
                 {
+                    input.KeyLock = UtilsService.RandomString(20);
+                    input.RegEmail = UtilsService.RandomString(8);
                     input.CreatedById = userId;
                     input.CreatedBy = fullName;
                     _context.Users.Add(input);
@@ -235,6 +238,13 @@ namespace Api.Controllers.Api
                             }
                             await _context.SaveChangesAsync();
                         }
+
+                        //thêm LogAction
+                        LogActionModel logActionModel = new LogActionModel("Thêm mới tài khoản " + input.FullName, "User", input.Id, HttpContext.Connection.RemoteIpAddress.ToString(), JsonConvert.SerializeObject(input), (int)AppEnums.Action.CREATE, userId, fullName);
+                        LogAction logAction = _mapper.Map<LogAction>(logActionModel);
+                        _context.Add(logAction);
+
+                        await _context.SaveChangesAsync();
 
                         if (input.Id > 0)
                             transaction.Commit();
@@ -315,7 +325,7 @@ namespace Api.Controllers.Api
                     return Ok(def);
                 }
 
-                User data = await _context.Users.FindAsync(id);
+                User data = await _context.Users.AsNoTracking().Where(e => e.Id == id && e.Status != AppEnums.EntityStatus.DELETED).FirstOrDefaultAsync();
                 if (data == null)
                 {
                     def.meta = new Meta(404, ApiConstants.MessageResource.NOT_FOUND_UPDATE_MESSAGE);
@@ -351,14 +361,14 @@ namespace Api.Controllers.Api
                                 UserRole userRoleExist = userRoles.Where(e => e.RoleId == userRole.RoleId).FirstOrDefault();
                                 if (userRoleExist == null)
                                 {
-                                    userRoleExist.UserId = input.Id;
-                                    userRoleExist.CreatedBy = fullName;
-                                    userRoleExist.CreatedById = userId;
-                                    _context.UserRoles.Add(userRoleExist);
+                                    userRole.UserId = input.Id;
+                                    userRole.CreatedBy = fullName;
+                                    userRole.CreatedById = userId;
+                                    _context.UserRoles.Add(userRole);
                                 }
                                 else
                                 {
-                                    userRoles.Remove(userRole);
+                                    userRoles.Remove(userRoleExist);
                                 }
                             }
                         }
@@ -371,9 +381,14 @@ namespace Api.Controllers.Api
                         });
                         _context.UpdateRange(userRoles);
 
+                        //thêm LogAction
+                        LogActionModel logActionModel = new LogActionModel("Sửa tài khoản " + input.FullName, "User", input.Id, HttpContext.Connection.RemoteIpAddress.ToString(), JsonConvert.SerializeObject(input), (int)AppEnums.Action.UPDATE, userId, fullName);
+                        LogAction logAction = _mapper.Map<LogAction>(logActionModel);
+                        _context.Add(logAction);
+
                         await _context.SaveChangesAsync();
 
-                        if (data.Id > 0)
+                        if (input.Id > 0)
                             transaction.Commit();
                         else
                             transaction.Rollback();
@@ -453,6 +468,14 @@ namespace Api.Controllers.Api
                     try
                     {
                         await _context.SaveChangesAsync();
+
+                        //thêm LogAction
+                        LogActionModel logActionModel = new LogActionModel("Xóa tài khoản " + data.FullName, "User", data.Id, HttpContext.Connection.RemoteIpAddress.ToString(), JsonConvert.SerializeObject(data), (int)AppEnums.Action.DELETED, userId, fullName);
+                        LogAction logAction = _mapper.Map<LogAction>(logActionModel);
+                        _context.Add(logAction);
+
+                        await _context.SaveChangesAsync();
+
                         if (data.Id > 0)
                             transaction.Commit();
                         else
@@ -791,9 +814,7 @@ namespace Api.Controllers.Api
                                 );
 
                                 userLoginData.AccessToken = new JwtSecurityTokenHandler().WriteToken(token);
-                                userLoginData.BaseApi = _configuration["AppSettings:BaseApi"];
                                 userLoginData.BaseUrlImg = _configuration["AppSettings:BaseUrlImg"];
-                                userLoginData.BaseUrlImgThumb = _configuration["AppSettings:BaseUrlImgThumb"];
                                 userLoginData.BaseUrlFile = _configuration["AppSettings:BaseUrlFile"];
 
                                 userLoginData.Password = null;

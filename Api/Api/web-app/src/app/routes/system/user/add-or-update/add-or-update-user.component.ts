@@ -2,13 +2,16 @@ import { Component, Input, OnInit } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { NzDrawerRef } from 'ng-zorro-antd/drawer';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { UserRepository } from 'src/app/infrastructure/repositories/user.repository';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import * as CryptoJS from 'crypto-js';
 import { NzUploadFile, NzUploadXHRArgs } from 'ng-zorro-antd/upload';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
 import GetByPageModel from 'src/app/core/models/get-by-page-model';
 import { NzModalService } from 'ng-zorro-antd/modal';
+import { RoleRepository } from 'src/app/infrastructure/repositories/role.repository';
+import { UserRepository } from 'src/app/infrastructure/repositories/user.repository';
+import { UploadRepository } from 'src/app/infrastructure/repositories/upload.repository';
+import { convertDate } from 'src/app/infrastructure/utils/common';
 
 @Component({
   selector: 'app-add-or-update-user',
@@ -16,8 +19,6 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 })
 export class AddOrUpdateUserComponent implements OnInit {
   @Input() record: NzSafeAny;
-  @Input() positions: any[] = [];
-  @Input() departments: any[] = [];
   @Input() srcImg?: string;
 
   nzScrollYValue = window.innerHeight - 450 + 'px';
@@ -31,26 +32,26 @@ export class AddOrUpdateUserComponent implements OnInit {
     private fb: FormBuilder,
     private userRepository: UserRepository,
     private message: NzMessageService,
-    private modalSrv: NzModalService
-  ) {}
+    private modalSrv: NzModalService,
+    private roleRepository: RoleRepository,
+    private uploadRepository: UploadRepository
+  ) { }
 
   ngOnInit(): void {
     this.getListRole();
 
     this.validateForm = this.fb.group({
-      UserId: [this.record ? this.record.UserId : undefined, []],
+      Id: [this.record ? this.record.Id : undefined, []],
       UserName: [this.record ? this.record.UserName : undefined, [Validators.required, Validators.minLength(4)]],
       Password: [this.record ? this.record.Password : undefined, !this.record ? [Validators.required, Validators.minLength(6)] : []],
       ConfirmPassword: [this.record ? this.record.Password : undefined, !this.record ? this.confirmValidator : []],
       FullName: [this.record ? this.record.FullName : undefined, [Validators.required, Validators.minLength(6)]],
       Phone: [this.record ? this.record.Phone : undefined, [Validators.required, Validators.pattern(/(84|0[3|5|7|  9])+([0-9]{8})\b/g)]],
       Email: [this.record ? this.record.Email : undefined, [Validators.email]],
+      Dob: [this.record ? convertDate(this.record.Dob) : undefined, []],
       Address: [this.record ? this.record.Address : undefined, []],
-      PositionId: [this.record ? this.record.PositionId : undefined, []],
-      DepartmentId: [this.record ? this.record.DepartmentId : undefined, []],
-      IsRoleGroup: [this.record ? this.record.DepartmentId : true, []],
-      Avata: [this.record ? this.record.Avata : undefined, []],
-      listRole: [this.record ? (this.record.listRole.length == 0 ? undefined : this.record.listRole) : undefined, [Validators.required]]
+      Avatar: [this.record ? this.record.Avatar : undefined, []],
+      userRoles: [this.record ? (this.record.userRoles.length == 0 ? undefined : this.record.userRoles) : undefined, [Validators.required]]
     });
   }
 
@@ -74,11 +75,11 @@ export class AddOrUpdateUserComponent implements OnInit {
     let data = { ...this.validateForm.value };
     data.IsRoleGroup = true;
 
-    if (!data.UserId && data.Password) {
+    if (!data.Id && data.Password) {
       data.Password = CryptoJS.MD5(data.Password).toString();
     }
 
-    const resp = data.UserId
+    const resp = data.Id
       ? await this.userRepository.update(data)
       : await this.userRepository.addNew(data);
 
@@ -105,26 +106,22 @@ export class AddOrUpdateUserComponent implements OnInit {
     const formData = new FormData();
     formData.append(file.name, file);
 
-    //const resp = await this.baseRepository.uploadImage(formData);
-    //this.validateForm.value.Avata = resp?.data.toString();
+    const resp = await this.uploadRepository.uploadImage(formData);
+    this.validateForm.value.Avatar = resp?.data.toString();
   }
 
   async getListRole() {
-    //const paging: GetByPageModel = new GetByPageModel();
-    //paging.select = 'RoleId,Name,Note';
-    //paging.order_by = 'Name Asc';
-    //paging.page_size = -1;
+    const paging: GetByPageModel = new GetByPageModel();
+    paging.select = 'Id,Name,Note';
+    paging.order_by = 'Name Asc';
+    paging.page_size = -1;
 
-    //const resp = await this.baseRepository.getByPage('/role/GetByPage', paging);
-    //if (resp.meta?.error_code == 200) {
-    //  this.rolesInput = resp.data;
-    //  this.rolesInput = resp.data.map((x: any) => {
-    //    return { RoleId: x.RoleId, RoleName: x.Name, FullName: x.Name + (x.Note ? ` (${x.Note})` : ``) };
-    //  });
-    //} else {
-    //  this.modalSrv.error({
-    //    nzTitle: 'Không lấy được dữ liệu.'
-    //  });
-    //}
+    const resp = await this.roleRepository.getByPage(paging);
+    if (resp.meta?.error_code == 200) {
+      // this.rolesInput = resp.data;
+      this.rolesInput = resp.data.map((x: any) => {
+        return { RoleId: x.Id, RoleName: x.Name, FullName: x.Name + (x.Note ? ` (${x.Note})` : ``) };
+      });
+    }
   }
 }

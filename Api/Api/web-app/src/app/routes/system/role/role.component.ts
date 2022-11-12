@@ -4,6 +4,7 @@ import { NzModalRef, NzModalService } from 'ng-zorro-antd/modal';
 import GetByPageModel from 'src/app/core/models/get-by-page-model';
 import QueryModel from 'src/app/core/models/query-model';
 import { RoleRepository } from 'src/app/infrastructure/repositories/role.repository';
+import { FunctionRepository } from 'src/app/infrastructure/repositories/function.repository';
 import { Location } from '@angular/common';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzDrawerRef, NzDrawerService } from 'ng-zorro-antd/drawer';
@@ -62,6 +63,7 @@ export class RoleComponent implements OnInit {
   constructor(
     private modalSrv: NzModalService,
     private roleRepository: RoleRepository,
+    private functionRepository: FunctionRepository,
     private message: NzMessageService,
     private drawerService: NzDrawerService,
     private nzNotificationService: NzNotificationService
@@ -135,7 +137,7 @@ export class RoleComponent implements OnInit {
 
     drawerRef.afterClose.subscribe((data: any) => {
       if (data) {
-        let msg = data.RoleId ? `Sửa thông tin quyền ${data.Name} thành công!` : `Thêm mới quyền ${data.Name} thành công!`;
+        let msg = data.Id ? `Sửa thông tin quyền ${data.Name} thành công!` : `Thêm mới quyền ${data.Name} thành công!`;
         this.message.create('success', msg);
         this.getData();
       }
@@ -163,13 +165,9 @@ export class RoleComponent implements OnInit {
   }
 
   async getListFunction() {
-    //const resp = await this.baseRepository.get('/function/listFunction');
-    //if (resp.meta?.error_code == 200) {
-    //  this.listFunctionInput = resp.data;
-    //} else {
-    //  this.modalSrv.error({
-    //    nzTitle: 'Không lấy được dữ liệu.'
-    //  });
-    //}
+    const resp = await this.functionRepository.getFunctionTreeModel();
+    if (resp.meta?.error_code == 200) {
+      this.listFunctionInput = resp.data;
+    }
   }
 }

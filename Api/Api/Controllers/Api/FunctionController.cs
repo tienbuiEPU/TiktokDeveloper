@@ -145,7 +145,7 @@ namespace Api.Controllers.Api
             }
             catch(Exception ex)
             {
-                log.Error("GetByPage Error:" + ex);
+                log.Error("GetById Error:" + ex);
                 def.meta = new Meta(500, ApiConstants.MessageResource.ERROR_500_MESSAGE);
                 return Ok(def);
             }
@@ -196,7 +196,7 @@ namespace Api.Controllers.Api
                         await _context.SaveChangesAsync();
 
                         //thêm LogAction
-                        LogActionModel logActionModel = new LogActionModel("Thêm mới chức năng", "Function", input.Id, HttpContext.Connection.RemoteIpAddress.ToString(), JsonConvert.SerializeObject(input), (int)AppEnums.Action.CREATE, userId, fullName);
+                        LogActionModel logActionModel = new LogActionModel("Thêm mới chức năng " + input.Name, "Function", input.Id, HttpContext.Connection.RemoteIpAddress.ToString(), JsonConvert.SerializeObject(input), (int)AppEnums.Action.CREATE, userId, fullName);
                         LogAction logAction = _mapper.Map<LogAction>(logActionModel);
                         _context.Add(logAction);
                         await _context.SaveChangesAsync();
@@ -229,7 +229,7 @@ namespace Api.Controllers.Api
             }
             catch (Exception e)
             {
-                log.Error("Exception:" + e);
+                log.Error("Post Exception:" + e);
                 def.meta = new Meta(500, ApiConstants.MessageResource.ERROR_500_MESSAGE);
                 return Ok(def);
             }
@@ -273,7 +273,7 @@ namespace Api.Controllers.Api
                     return Ok(def);
                 }
 
-                Function data = await _context.Functions.AsNoTracking().Where(e => e.Id == id).FirstOrDefaultAsync();
+                Function data = await _context.Functions.AsNoTracking().Where(e => e.Id == id && e.Status != AppEnums.EntityStatus.DELETED).FirstOrDefaultAsync();
                 if(data == null)
                 {
                     def.meta = new Meta(404, ApiConstants.MessageResource.NOT_FOUND_UPDATE_MESSAGE);
@@ -302,8 +302,14 @@ namespace Api.Controllers.Api
                     try
                     {
                         await _context.SaveChangesAsync();
-                        
-                        if (data.Id > 0)
+
+                        //thêm LogAction
+                        LogActionModel logActionModel = new LogActionModel("Sửa chức năng " + input.Name, "Function", input.Id, HttpContext.Connection.RemoteIpAddress.ToString(), JsonConvert.SerializeObject(input), (int)AppEnums.Action.UPDATE, userId, fullName);
+                        LogAction logAction = _mapper.Map<LogAction>(logActionModel);
+                        _context.Add(logAction);
+                        await _context.SaveChangesAsync();
+
+                        if (input.Id > 0)
                             transaction.Commit();
                         else
                             transaction.Rollback();
@@ -331,7 +337,7 @@ namespace Api.Controllers.Api
             }
             catch (Exception e)
             {
-                log.Error("Exception:" + e);
+                log.Error("Put Exception:" + e);
                 def.meta = new Meta(500, ApiConstants.MessageResource.ERROR_500_MESSAGE);
                 return Ok(def);
             }
@@ -400,6 +406,12 @@ namespace Api.Controllers.Api
                     {
                         await _context.SaveChangesAsync();
 
+                        //thêm LogAction
+                        LogActionModel logActionModel = new LogActionModel("Xóa chức năng " + data.Name, "Function", data.Id, HttpContext.Connection.RemoteIpAddress.ToString(), JsonConvert.SerializeObject(data), (int)AppEnums.Action.DELETED, userId, fullName);
+                        LogAction logAction = _mapper.Map<LogAction>(logActionModel);
+                        _context.Add(logAction);
+                        await _context.SaveChangesAsync();
+
                         if (data.Id > 0)
                             transaction.Commit();
                         else
@@ -436,6 +448,60 @@ namespace Api.Controllers.Api
         private bool FunctionExists(int id)
         {
             return _context.Functions.Count(e => e.Id == id) > 0;
+        }
+
+        [HttpGet("getFunctionTreeModel")]
+        public IActionResult GetFunctionTreeModel()
+        {
+            DefaultResponse def = new DefaultResponse();
+            //check role
+            var identity = (ClaimsIdentity)User.Identity;
+            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
+            if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)AppEnums.Action.VIEW))
+            {
+                def.meta = new Meta(222, ApiConstants.MessageResource.NOPERMISION_VIEW_MESSAGE);
+                return Ok(def);
+            }
+
+            try
+            {
+                List<FunctionTreeData> functionTreeDatas = new List<FunctionTreeData>();
+                def.data = listFunction(functionTreeDatas, 0, 0);
+                def.meta = new Meta(200, ApiConstants.MessageResource.ACCTION_SUCCESS);
+                return Ok(def);
+            }
+            catch (Exception ex)
+            {
+                log.Error("GetFunctionTreeModel Error:" + ex);
+                def.meta = new Meta(500, ApiConstants.MessageResource.ERROR_500_MESSAGE);
+                return Ok(def);
+            }
+        }
+
+        private List<FunctionTreeData> listFunction(List<FunctionTreeData> res, int functionParentId, int level)
+        {
+            var index = level + 1;
+            try
+            {
+                List<Function> data = _context.Functions.Where(e => e.FunctionParentId == functionParentId && e.Status != AppEnums.EntityStatus.DELETED).ToList();
+
+                if (data.Count() > 0)
+                {
+                    foreach (var item in data)
+                    {
+                        FunctionTreeData functionTreeData = new FunctionTreeData();
+                        functionTreeData.Id = item.Id;
+                        functionTreeData.Code = item.Code;
+                        functionTreeData.Name = item.Name;
+                        functionTreeData.Level = level;
+                        res.Add(functionTreeData);
+                        listFunction(res, item.Id, index);
+                    }
+                }
+            }
+            catch { }
+
+            return res;
         }
     }
 }

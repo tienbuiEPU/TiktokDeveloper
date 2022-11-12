@@ -21,37 +21,39 @@ export class AddOrUpdateRoleComponent implements OnInit {
     action = { View: false, Create: false, Update: false, Delete: false, Import: false, Export: false, Print: false, Other: false, Menu: false };
     indeterminate = { View: false, Create: false, Update: false, Delete: false, Import: false, Export: false, Print: false, Other: false, Menu: false };
 
-  constructor(private drawerRef: NzDrawerRef<string>, private fb: FormBuilder, private roleRepository: RoleRepository, private message: NzMessageService) { }
+    constructor(private drawerRef: NzDrawerRef<string>, private fb: FormBuilder, private roleRepository: RoleRepository, private message: NzMessageService) { }
 
     ngOnInit(): void {
         this.validateForm = this.fb.group({
-            RoleId: [this.record ? this.record.RoleId : undefined],
+            Id: [this.record ? this.record.Id : undefined],
             Code: [this.record ? this.record.Code : undefined, [Validators.required]],
             Name: [this.record ? this.record.Name : undefined, [Validators.required]],
             LevelRole: [this.record ? this.record.LevelRole : undefined, [Validators.min(1)]],
             Note: [this.record ? this.record.Note : undefined],
-            listFunction: []
+            functionRoles: []
         });
 
         this.convertListFunctionInput();
+
+        console.log(this.record.functionRoles);
     }
 
     convertListFunctionInput() {
         if (this.record) {
             for (let i = 0; i < this.listFunctionInput.length; i++) {
-                for (let j = 0; j < this.record.listFunction.length; j++) {
-                    if (this.listFunctionInput[i].FunctionId == this.record.listFunction[j].FunctionId) {
-                        this.listFunctionInput[i].View = this.record.listFunction[j].ActiveKey[0] == "1" ? true : false;
-                        this.listFunctionInput[i].Create = this.record.listFunction[j].ActiveKey[1] == "1" ? true : false;
-                        this.listFunctionInput[i].Update = this.record.listFunction[j].ActiveKey[2] == "1" ? true : false;
-                        this.listFunctionInput[i].Delete = this.record.listFunction[j].ActiveKey[3] == "1" ? true : false;
-                        this.listFunctionInput[i].Import = this.record.listFunction[j].ActiveKey[4] == "1" ? true : false;
-                        this.listFunctionInput[i].Export = this.record.listFunction[j].ActiveKey[5] == "1" ? true : false;
-                        this.listFunctionInput[i].Print = this.record.listFunction[j].ActiveKey[6] == "1" ? true : false;
-                        this.listFunctionInput[i].Other = this.record.listFunction[j].ActiveKey[7] == "1" ? true : false;
-                        this.listFunctionInput[i].Menu = this.record.listFunction[j].ActiveKey[8] == "1" ? true : false;
-                        this.listFunctionInput[i].All = this.record.listFunction[j].ActiveKey.indexOf("0") == -1 ? true : false;
-                        this.listFunctionInput[i].indeterminateAll = this.record.listFunction[j].ActiveKey.indexOf("1") != -1 && !this.listFunctionInput[i].All ? true : false;
+                for (let j = 0; j < this.record.functionRoles.length; j++) {
+                    if (this.listFunctionInput[i].Id == this.record.functionRoles[j].FunctionId) {
+                        this.listFunctionInput[i].View = this.record.functionRoles[j].ActiveKey[0] == "1" ? true : false;
+                        this.listFunctionInput[i].Create = this.record.functionRoles[j].ActiveKey[1] == "1" ? true : false;
+                        this.listFunctionInput[i].Update = this.record.functionRoles[j].ActiveKey[2] == "1" ? true : false;
+                        this.listFunctionInput[i].Delete = this.record.functionRoles[j].ActiveKey[3] == "1" ? true : false;
+                        this.listFunctionInput[i].Import = this.record.functionRoles[j].ActiveKey[4] == "1" ? true : false;
+                        this.listFunctionInput[i].Export = this.record.functionRoles[j].ActiveKey[5] == "1" ? true : false;
+                        this.listFunctionInput[i].Print = this.record.functionRoles[j].ActiveKey[6] == "1" ? true : false;
+                        this.listFunctionInput[i].Other = this.record.functionRoles[j].ActiveKey[7] == "1" ? true : false;
+                        this.listFunctionInput[i].Menu = this.record.functionRoles[j].ActiveKey[8] == "1" ? true : false;
+                        this.listFunctionInput[i].All = this.record.functionRoles[j].ActiveKey.indexOf("0") == -1 ? true : false;
+                        this.listFunctionInput[i].indeterminateAll = this.record.functionRoles[j].ActiveKey.indexOf("1") != -1 && !this.listFunctionInput[i].All ? true : false;
                         break;
                     }
                     else {
@@ -95,12 +97,14 @@ export class AddOrUpdateRoleComponent implements OnInit {
             });
         }
 
-        let index = 0;
-        Object.keys(this.listFunctionInput[index]).forEach(key => {
-            if (key == "View" || key == "Create" || key == "Update" || key == "Delete" || key == "Import" || key == "Export" || key == "Print" || key == "Other" || key == "Menu") {
-                this.refreshStatus(key);
-            }
-        });
+        if (this.listFunctionInput.length > 0) {
+            let index = 0;
+            Object.keys(this.listFunctionInput[index]).forEach(key => {
+                if (key == "View" || key == "Create" || key == "Update" || key == "Delete" || key == "Import" || key == "Export" || key == "Print" || key == "Other" || key == "Menu") {
+                    this.refreshStatus(key);
+                }
+            });
+        }
     }
 
     checkAll(value: boolean, keyCheck: string) {
@@ -193,11 +197,11 @@ export class AddOrUpdateRoleComponent implements OnInit {
     async submitForm() {
         this.loading = true;
         let data = { ...this.validateForm.value };
-        data.listFunction = [];
+        data.functionRoles = [];
 
         this.listFunctionInput.forEach(item => {
             let newFunc: { FunctionId?: number, ActiveKey?: string } = {};
-            newFunc.FunctionId = item.FunctionId;
+            newFunc.FunctionId = item.Id;
             newFunc.ActiveKey = "";
             newFunc.ActiveKey += item.View == true ? 1 : 0;
             newFunc.ActiveKey += item.Create == true ? 1 : 0;
@@ -209,10 +213,10 @@ export class AddOrUpdateRoleComponent implements OnInit {
             newFunc.ActiveKey += item.Other == true ? 1 : 0;
             newFunc.ActiveKey += item.Menu == true ? 1 : 0;
 
-            data.listFunction.push(newFunc);
+            data.functionRoles.push(newFunc);
         });
 
-      const resp = data.RoleId ? await this.roleRepository.update(data) : await this.roleRepository.addNew(data);
+        const resp = data.Id ? await this.roleRepository.update(data) : await this.roleRepository.addNew(data);
         if (resp.meta?.error_code == 200) {
             this.loading = false;
             this.drawerRef.close(data);

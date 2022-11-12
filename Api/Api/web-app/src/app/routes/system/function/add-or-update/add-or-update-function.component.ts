@@ -53,11 +53,6 @@ export class AddOrUpdateFunctionComponent implements OnInit {
         if (resp.meta?.error_code == 200) {
             this.dataAll = dataToTreeNode(resp.data, "Id", "Name", "FunctionParentId", undefined, 0, false);
         }
-        // else {
-        //     this.modalSrv.error({
-        //         nzTitle: 'Không lấy được dữ liệu.'
-        //     });
-        // }
     }
 
     async submitForm() {

@@ -12,6 +12,7 @@ import { STChange, STColumn, STComponent } from '@delon/abc/st';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ChangePassUserComponent } from './change-pass/change-pass-user.component';
 import { EntityStatus } from 'src/app/shared/utils/enums';
+import { UserService } from 'src/app/core/services/user.service';
 
 @Component({
   selector: 'app-user',
@@ -27,12 +28,12 @@ export class UserComponent implements OnInit {
   dataAll: any[] = [];
   loading = false;
   selectAll?: any[] = [];
-  srcImg = gatewayConfig.domain_thumb_img;
+  srcImg = this.userService.getLoggedUser()['BaseUrlImg'];
 
   columns: STColumn[] = [
     // { title: '', index: 'Id', type: 'checkbox' },
-    { title: 'Stt', type: 'no', width: 40 },
-    { title: 'Avatar', index: 'Avatar', type: 'img', width: 60 },
+    { title: 'Stt', type: 'no', width: 40, },
+    { title: 'Avatar', index: 'AvatarClone', type: 'img', width: 60 },
     { title: 'Tên người dùng', index: 'FullName', sort: true },
     { title: 'Tài khoản', index: 'UserName', sort: true },
     { title: 'Số điện thoại', index: 'Phone', sort: true },
@@ -51,7 +52,7 @@ export class UserComponent implements OnInit {
           iif: i => i.Status == 1,
           type: 'del',
           pop: {
-            title: 'Bạn có chắc chắn muốn khóa tài khoản này?',
+            title: 'Bạn có chắc chắn muốn KHÓA tài khoản này?',
             okType: 'danger',
             icon: 'lock'
           },
@@ -63,7 +64,7 @@ export class UserComponent implements OnInit {
           iif: i => i.Status == 98,
           type: 'del',
           pop: {
-            title: 'Bạn có chắc chắn muốn mở khóa tài khoản này?',
+            title: 'Bạn có chắc chắn muốn MỞ KHÓA tài khoản này?',
             okType: 'danger',
             icon: 'unlock'
           },
@@ -101,7 +102,8 @@ export class UserComponent implements OnInit {
     private userRepository: UserRepository,
     private message: NzMessageService,
     private drawerService: NzDrawerService,
-    private nzNotificationService: NzNotificationService
+    private nzNotificationService: NzNotificationService,
+    private userService: UserService
   ) { }
 
   ngOnInit(): void {
@@ -155,14 +157,10 @@ export class UserComponent implements OnInit {
 
       if (resp.meta?.error_code == 200) {
         this.data = resp.data.map((dataItem: any, index: number) => {
-          if (dataItem.Avata) dataItem.Avatar = this.srcImg.concat(dataItem.Avata);
+          if (dataItem.Avatar) dataItem.AvatarClone = this.srcImg.concat(dataItem.Avatar);
           return dataItem;
         });
         this.paging.item_count = resp.metadata;
-      } else {
-        this.modalSrv.error({
-          nzTitle: 'Không lấy được dữ liệu.'
-        });
       }
     } catch (error) {
       throw error;
@@ -178,15 +176,13 @@ export class UserComponent implements OnInit {
       nzContent: AddOrUpdateUserComponent,
       nzContentParams: {
         record,
-        positions: [],
-        departments: [],
         srcImg: this.srcImg
       }
     });
 
     drawerRef.afterClose.subscribe((data: any) => {
       if (data) {
-        let msg = data.UserId ? `Sửa tài khoản ${data.UserName} thành công!` : `Thêm mới tài khoản ${data.UserName} thành công!`;
+        let msg = data.Id ? `Sửa tài khoản ${data.UserName} thành công!` : `Thêm mới tài khoản ${data.UserName} thành công!`;
         this.message.create('success', msg);
         this.getData();
       }

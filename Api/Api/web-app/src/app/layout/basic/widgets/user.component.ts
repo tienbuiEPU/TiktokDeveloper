@@ -7,8 +7,8 @@ import { SettingsService } from '@delon/theme';
   selector: 'header-user',
   template: `
     <div class="alain-default__nav-item d-flex align-items-center px-sm" nz-dropdown nzPlacement="bottomRight" [nzDropdownMenu]="userMenu">
-      <nz-avatar nzIcon="user" style="background-color:#87d068;" nzSize="small" class="mr-sm"></nz-avatar>
-      {{ user.name || user.username || user.userName | titlecase }}
+      <nz-avatar nzIcon="user" [nzSrc]="user.BaseUrlImg + user.Avatar" style="background-color:#87d068;" nzSize="small" class="mr-sm"></nz-avatar>
+      {{ user.FullName || user.username || user.userName | titlecase }}
     </div>
     <nz-dropdown-menu #userMenu="nzDropdownMenu">
       <div nz-menu class="width-sm">
@@ -17,8 +17,8 @@ import { SettingsService } from '@delon/theme';
           Tài khoản
         </div>
         <div nz-menu-item routerLink="/pro/account/settings">
-          <i nz-icon nzType="setting" class="mr-sm"></i>
-          Account Settings
+          <i nz-icon nzType="lock" class="mr-sm"></i>
+          Đổi mật khẩu
         </div>
         <li nz-menu-divider></li>
         <div nz-menu-item (click)="logout()">

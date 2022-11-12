@@ -56,12 +56,13 @@ export class BaseHttpClient {
   }
 
   baseUploadRequest(params?: IRequestParameter): Promise<any> {
-    const url = params?.url?.startsWith("http") ? params?.url : gatewayConfig.api_gateway + params?.url;
+    // const url = params?.url?.startsWith("http") ? params?.url : gatewayConfig.api_gateway + params?.url;
+    const url = params?.url;
     const headers = params?.headers;
     const token = this.tokenService.get()?.token;
     const bearer = token ? { Authorization: `Bearer ${token}` } : undefined;
 
-    const uploadReq = new HttpRequest('POST', url, params?.body, {
+    const uploadReq = new HttpRequest('POST', url ?? "", params?.body, {
       headers: new HttpHeaders({
         ...headers,
         ...bearer
@@ -115,7 +116,8 @@ export class BaseHttpClient {
   public downloadRequest(params?: IRequestParameter): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       try {
-        const url = params?.url?.startsWith("http") ? params?.url : gatewayConfig.api_gateway + params?.url;
+        // const url = params?.url?.startsWith("http") ? params?.url : gatewayConfig.api_gateway + params?.url;
+        const url = params?.url;
         const headers = params?.headers;
         const token = this.tokenService.get()?.token;
         const bearer = token ? { Authorization: `Bearer ${token}` } : undefined;
@@ -129,7 +131,7 @@ export class BaseHttpClient {
           responseType: 'blob' as 'json'
         };
 
-        this.http.get(url, httpOptions).subscribe((blob: any) => {
+        this.http.get(url ?? "", httpOptions).subscribe((blob: any) => {
           const file = new Blob([blob], { type: 'application/pdf' });
           const fileURL = URL.createObjectURL(file);
 

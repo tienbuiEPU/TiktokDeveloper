@@ -73,4 +73,10 @@ export class UserService {
     // this.settingService.setUser(undefined);
     this.router.navigateByUrl('/');
   }
+
+  public getLoggedUser() {
+    let user = this.settingService.user;
+
+    return user;
+  }
 }

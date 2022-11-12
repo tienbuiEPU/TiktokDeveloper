@@ -4,12 +4,14 @@ using Api.Common.Services;
 using Api.Common.ViewModels.Common;
 using Api.Entities;
 using Api.Models.Data;
+using Api.Models.Dto;
 using Api.Persistence;
 using AutoMapper;
 using log4net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -225,6 +227,12 @@ namespace Api.Controllers.Api
                             await _context.SaveChangesAsync();
                         }
 
+                        //thêm LogAction
+                        LogActionModel logActionModel = new LogActionModel("Thêm mới nhóm quyền " + input.Name, "Role", input.Id, HttpContext.Connection.RemoteIpAddress.ToString(), JsonConvert.SerializeObject(input), (int)AppEnums.Action.CREATE, userId, fullName);
+                        LogAction logAction = _mapper.Map<LogAction>(logActionModel);
+                        _context.Add(logAction);
+                        await _context.SaveChangesAsync();
+
                         if (input.Id > 0)
                             transaction.Commit();
                         else
@@ -301,8 +309,8 @@ namespace Api.Controllers.Api
                     return Ok(def);
                 }
 
-                Role data = await _context.Roles.FindAsync(id);
-                if(data == null)
+                Role data = await _context.Roles.AsNoTracking().Where(e => e.Id == id && e.Status != AppEnums.EntityStatus.DELETED).FirstOrDefaultAsync();
+                if (data == null)
                 {
                     def.meta = new Meta(404, ApiConstants.MessageResource.NOT_FOUND_UPDATE_MESSAGE);
                     return Ok(def);
@@ -358,9 +366,14 @@ namespace Api.Controllers.Api
                         });
                         _context.UpdateRange(functionRoles);
 
+                        //thêm LogAction
+                        LogActionModel logActionModel = new LogActionModel("Sửa nhóm quyền " + input.Name, "Role", input.Id, HttpContext.Connection.RemoteIpAddress.ToString(), JsonConvert.SerializeObject(input), (int)AppEnums.Action.UPDATE, userId, fullName);
+                        LogAction logAction = _mapper.Map<LogAction>(logActionModel);
+                        _context.Add(logAction);
+
                         await _context.SaveChangesAsync();
 
-                        if (data.Id > 0)
+                        if (input.Id > 0)
                             transaction.Commit();
                         else
                             transaction.Rollback();
@@ -456,6 +469,13 @@ namespace Api.Controllers.Api
                     try
                     {
                         await _context.SaveChangesAsync();
+
+                        //thêm LogAction
+                        LogActionModel logActionModel = new LogActionModel("Xóa nhóm quyền " + data.Name, "Role", data.Id, HttpContext.Connection.RemoteIpAddress.ToString(), JsonConvert.SerializeObject(data), (int)AppEnums.Action.DELETED, userId, fullName);
+                        LogAction logAction = _mapper.Map<LogAction>(logActionModel);
+                        _context.Add(logAction);
+                        await _context.SaveChangesAsync();
+
                         if (data.Id > 0)
                             transaction.Commit();
                         else

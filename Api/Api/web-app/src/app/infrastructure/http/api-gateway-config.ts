@@ -2,7 +2,7 @@ const { location } = window;
 const { hostname } = location || {};
 
 //#region  --- Không sửa ----
-const url = 'https://apihis.eptsky.com';
+const url = '';
 //const url = 'https://localhost:44322';
 // const url = 'https://localhost:44345';
 //#endregion

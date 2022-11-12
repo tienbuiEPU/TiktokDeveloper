@@ -4,7 +4,7 @@ import { BaseHttpClient } from '../http/base-http-client';
 import { objectToQueryString } from '../utils/object-to-query-string';
 
 @Injectable({
-    providedIn: 'root',
+  providedIn: 'root',
 })
 export class FunctionRepository {
   public baseUrl = "/api/function";
@@ -34,6 +34,12 @@ export class FunctionRepository {
   public async delete(param: any) {
     return this.baseHttpClient.deleteRequest({
       url: `${this.baseUrl}/${param.Id}`
+    });
+  }
+
+  public getFunctionTreeModel() {
+    return this.baseHttpClient.getRequest({
+      url: `${this.baseUrl}/getFunctionTreeModel`,
     });
   }
 }

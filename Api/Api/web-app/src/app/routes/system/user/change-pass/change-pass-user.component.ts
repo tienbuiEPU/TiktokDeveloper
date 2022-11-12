@@ -56,7 +56,7 @@ export class ChangePassUserComponent implements OnInit {
 
   ngOnInit(): void {
     this.validateForm = this.fb.group({
-      UserId: [this.record ? this.record.UserId : undefined, []],
+      Id: [this.record ? this.record.Id : undefined, []],
       Password: [undefined, [Validators.required, Validators.minLength(6)]],
       ConfirmPassword: [undefined, this.confirmValidator]
     });
@@ -89,7 +89,7 @@ export class ChangePassUserComponent implements OnInit {
 
     try {
       this.loading = true;
-      const resp = await this.userRepository.update(data);
+      const resp = await this.userRepository.changePassUser(data);
 
       if (resp.meta?.error_code == 200) {
         this.modal.triggerOk();

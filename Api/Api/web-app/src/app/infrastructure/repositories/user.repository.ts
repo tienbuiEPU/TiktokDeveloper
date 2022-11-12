@@ -77,4 +77,11 @@ export class UserRepository {
       body: param
     });
   }
+
+  public async changeInfoUser(param: any) {
+    return this.baseHttpClient.putRequest({
+      url: `${this.baseUrl}/changeInfoUser/${param.Id}`,
+      body: param
+    });
+  }
 }
