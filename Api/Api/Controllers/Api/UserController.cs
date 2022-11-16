@@ -226,6 +226,10 @@ namespace Api.Controllers.Api
                     {
                         await _context.SaveChangesAsync();
 
+                        //update password
+                        input.Password = input.KeyLock.Trim() + input.RegEmail.Trim() + input.Id + input.Password.Trim();
+                        _context.Update(input);
+
                         if (input.userRoles != null)
                         {
                             foreach (UserRole userRole in input.userRoles)
@@ -567,6 +571,11 @@ namespace Api.Controllers.Api
 
                     try
                     {
+                        //thêm LogAction
+                        LogActionModel logActionModel = new LogActionModel("Cấp lại mật khẩu cho tài khoản " + data.FullName, "User", data.Id, HttpContext.Connection.RemoteIpAddress.ToString(), JsonConvert.SerializeObject(data), (int)AppEnums.Action.UPDATE, userId, fullName);
+                        LogAction logAction = _mapper.Map<LogAction>(logActionModel);
+                        _context.Add(logAction);
+
                         await _context.SaveChangesAsync();
 
                         if (data.Id > 0)
@@ -640,6 +649,12 @@ namespace Api.Controllers.Api
 
                     try
                     {
+                        //thêm LogAction
+                        string actionName = (AppEnums.EntityStatus)stt == AppEnums.EntityStatus.NORMAL ? "Mở khóa " : ((AppEnums.EntityStatus)stt == AppEnums.EntityStatus.DELETED ? "Khóa " : "Đổi trạng thái cho ");
+                        LogActionModel logActionModel = new LogActionModel(actionName + "tài khoản " + data.FullName, "User", data.Id, HttpContext.Connection.RemoteIpAddress.ToString(), JsonConvert.SerializeObject(data), (int)AppEnums.Action.UPDATE, userId, fullName);
+                        LogAction logAction = _mapper.Map<LogAction>(logActionModel);
+                        _context.Add(logAction);
+
                         await _context.SaveChangesAsync();
 
                         if (data.Id > 0)
@@ -821,6 +836,11 @@ namespace Api.Controllers.Api
                                 userLoginData.KeyLock = null;
                                 userLoginData.RegEmail = null;
 
+                                // save time login
+                                userLogin.LastLogin = DateTime.Now;
+                                _context.Update(userLogin);
+                                _context.SaveChanges();
+
                                 def.data = userLoginData;
                                 def.meta = new Meta(200, "Đăng nhập thành công!");
                                 return Ok(def);
@@ -963,6 +983,11 @@ namespace Api.Controllers.Api
 
                     try
                     {
+                        //thêm LogAction
+                        LogActionModel logActionModel = new LogActionModel("Tài khoản " + data.FullName + " đổi mật khẩu", "User", data.Id, HttpContext.Connection.RemoteIpAddress.ToString(), JsonConvert.SerializeObject(data), (int)AppEnums.Action.UPDATE, userId, fullName);
+                        LogAction logAction = _mapper.Map<LogAction>(logActionModel);
+                        _context.Add(logAction);
+
                         await _context.SaveChangesAsync();
 
                         if (data.Id > 0)
@@ -1090,6 +1115,11 @@ namespace Api.Controllers.Api
 
                     try
                     {
+                        //thêm LogAction
+                        LogActionModel logActionModel = new LogActionModel("Tài khoản " + data.FullName + " thay đổi thông tin", "User", data.Id, HttpContext.Connection.RemoteIpAddress.ToString(), JsonConvert.SerializeObject(data), (int)AppEnums.Action.UPDATE, userId, fullName);
+                        LogAction logAction = _mapper.Map<LogAction>(logActionModel);
+                        _context.Add(logAction);
+
                         await _context.SaveChangesAsync();
 
                         if (data.Id > 0)

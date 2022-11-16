@@ -35,14 +35,17 @@ export class AddOrUpdateUserComponent implements OnInit {
     private modalSrv: NzModalService,
     private roleRepository: RoleRepository,
     private uploadRepository: UploadRepository
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.getListRole();
 
     this.validateForm = this.fb.group({
       Id: [this.record ? this.record.Id : undefined, []],
-      UserName: [this.record ? this.record.UserName : undefined, [Validators.required, Validators.minLength(4)]],
+      UserName: [
+        { value: this.record ? this.record.UserName : undefined, disabled: this.record ? true : false },
+        [Validators.required, Validators.minLength(4)]
+      ],
       Password: [this.record ? this.record.Password : undefined, !this.record ? [Validators.required, Validators.minLength(6)] : []],
       ConfirmPassword: [this.record ? this.record.Password : undefined, !this.record ? this.confirmValidator : []],
       FullName: [this.record ? this.record.FullName : undefined, [Validators.required, Validators.minLength(6)]],
@@ -79,9 +82,7 @@ export class AddOrUpdateUserComponent implements OnInit {
       data.Password = CryptoJS.MD5(data.Password).toString();
     }
 
-    const resp = data.Id
-      ? await this.userRepository.update(data)
-      : await this.userRepository.addNew(data);
+    const resp = data.Id ? await this.userRepository.update(data) : await this.userRepository.addNew(data);
 
     if (resp.meta?.error_code == 200) {
       this.loading = false;
@@ -107,7 +108,7 @@ export class AddOrUpdateUserComponent implements OnInit {
     formData.append(file.name, file);
 
     const resp = await this.uploadRepository.uploadImage(formData);
-    this.validateForm.value.Avatar = resp?.data.toString();
+    this.validateForm.get('Avatar')?.setValue(resp?.data.toString());
   }
 
   async getListRole() {
