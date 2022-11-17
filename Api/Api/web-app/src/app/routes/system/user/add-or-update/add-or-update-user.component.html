@@ -30,12 +30,12 @@
     </nz-form-control>
   </nz-form-item>
   <nz-form-item>
-    <nz-form-label [nzSpan]="6" nzFor="FullName" nzRequired>Tên tài khoản</nz-form-label>
+    <nz-form-label [nzSpan]="6" nzFor="FullName" nzRequired>Họ tên</nz-form-label>
     <nz-form-control [nzSpan]="14" nzHasFeedback [nzErrorTip]="fullNameErrorTpl">
       <input nz-input formControlName="FullName" />
       <ng-template #fullNameErrorTpl let-control>
-        <ng-container *ngIf="control.hasError('required')">Chưa nhập Tên tài khoản!</ng-container>
-        <ng-container *ngIf="control.hasError('minlength')">Tên tài khoản từ 6 ký tự trở lên!</ng-container>
+        <ng-container *ngIf="control.hasError('required')">Chưa nhập Họ tên!</ng-container>
+        <ng-container *ngIf="control.hasError('minlength')">Họ tên từ 6 ký tự trở lên!</ng-container>
       </ng-template>
     </nz-form-control>
   </nz-form-item>

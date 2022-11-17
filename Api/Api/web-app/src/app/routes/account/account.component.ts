@@ -8,7 +8,7 @@ import { debounceTime, filter } from 'rxjs/operators';
 @Component({
   selector: 'app-account-settings',
   templateUrl: './account.component.html',
-  styleUrls: [],
+  styleUrls: ['./account.component.less'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AccountSettingsComponent implements AfterViewInit, OnDestroy {
@@ -18,12 +18,12 @@ export class AccountSettingsComponent implements AfterViewInit, OnDestroy {
   title!: string;
   menus: Array<{ key: string; title: string; selected?: boolean }> = [
     {
-      key: 'setting',
-      title: 'Thay đổi thông tin'
+      key: 'changeinfo',
+      title: 'Thay đổi thông tin tài khoản'
     },
     {
       key: 'changepass',
-      title: 'Đổi mật khẩu'
+      title: 'Đổi mật khẩu tài khoản'
     },
     {
       key: 'notification',

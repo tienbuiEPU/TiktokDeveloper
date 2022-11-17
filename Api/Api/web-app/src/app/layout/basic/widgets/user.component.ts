@@ -7,16 +7,22 @@ import { SettingsService } from '@delon/theme';
   selector: 'header-user',
   template: `
     <div class="alain-default__nav-item d-flex align-items-center px-sm" nz-dropdown nzPlacement="bottomRight" [nzDropdownMenu]="userMenu">
-      <nz-avatar nzIcon="user" [nzSrc]="user.BaseUrlImg + user.Avatar" style="background-color:#87d068;" nzSize="small" class="mr-sm"></nz-avatar>
+      <nz-avatar
+        nzIcon="user"
+        [nzSrc]="user.BaseUrlImg + user.Avatar"
+        style="background-color:#87d068;"
+        nzSize="small"
+        class="mr-sm"
+      ></nz-avatar>
       {{ user.FullName || user.username || user.userName | titlecase }}
     </div>
     <nz-dropdown-menu #userMenu="nzDropdownMenu">
       <div nz-menu class="width-sm">
-        <div nz-menu-item routerLink="/pro/account/center">
+        <div nz-menu-item routerLink="/account/changeinfo">
           <i nz-icon nzType="user" class="mr-sm"></i>
           Tài khoản
         </div>
-        <div nz-menu-item routerLink="/pro/account/settings">
+        <div nz-menu-item routerLink="/account/changepass">
           <i nz-icon nzType="lock" class="mr-sm"></i>
           Đổi mật khẩu
         </div>
@@ -35,7 +41,7 @@ export class HeaderUserComponent {
     return this.settings.user;
   }
 
-  constructor(private settings: SettingsService, private router: Router, @Inject(DA_SERVICE_TOKEN) private tokenService: ITokenService) { }
+  constructor(private settings: SettingsService, private router: Router, @Inject(DA_SERVICE_TOKEN) private tokenService: ITokenService) {}
 
   logout(): void {
     this.tokenService.clear();

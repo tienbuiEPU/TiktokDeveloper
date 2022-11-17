@@ -21,6 +21,7 @@ const routes: Routes = [
       { path: 'exception', loadChildren: () => import('./exception/exception.module').then(m => m.ExceptionModule) },
       { path: 'category', loadChildren: () => import('./category/category.module').then(m => m.CategoryModule) },
       { path: 'system', loadChildren: () => import('./system/system.module').then(m => m.SystemModule) },
+      { path: 'account', loadChildren: () => import('./account/account.module').then(m => m.AccountModule) }
     ]
   },
   {
@@ -42,4 +43,4 @@ const routes: Routes = [
   ],
   exports: [RouterModule]
 })
-export class RouteRoutingModule { }
+export class RouteRoutingModule {}

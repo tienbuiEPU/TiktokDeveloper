@@ -4,43 +4,45 @@ import GetByPageModel from 'src/app/core/models/get-by-page-model';
 import { objectToQueryString } from '../utils/object-to-query-string';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class UserRepository {
-  public baseUrl = "/api/user";
+  public baseUrl = '/api/user';
 
-  constructor(private baseHttpClient: BaseHttpClient) { }
+  constructor(private baseHttpClient: BaseHttpClient) {}
 
   public registerAccount(param: any) {
     return this.baseHttpClient.postRequest({
-      url: "",
+      url: '',
       body: {
-        param,
-      },
+        param
+      }
     });
   }
 
   public login(param: any) {
     return this.baseHttpClient.postRequest({
       url: `${this.baseUrl}/login`,
-      body: param,
+      body: param
     });
   }
 
-  public getAccountInfo() {
-    return this.baseHttpClient.postRequest();
+  public getAccountInfo(id: number) {
+    return this.baseHttpClient.getRequest({
+      url: `${this.baseUrl}/getInfo/${id}`
+    });
   }
 
   public refreshToken(param: any) {
     return this.baseHttpClient.postRequest({
-      url: "",
-      body: param,
+      url: '',
+      body: param
     });
   }
 
   public getByPage(params: GetByPageModel) {
     return this.baseHttpClient.getRequest({
-      url: `${this.baseUrl}/GetByPage${objectToQueryString(params)}`,
+      url: `${this.baseUrl}/GetByPage${objectToQueryString(params)}`
     });
   }
 
@@ -78,9 +80,16 @@ export class UserRepository {
     });
   }
 
-  public async changeInfoUser(param: any) {
+  public async changeInfoUser(param: any, id: number) {
     return this.baseHttpClient.putRequest({
-      url: `${this.baseUrl}/changeInfoUser/${param.Id}`,
+      url: `${this.baseUrl}/changeInfoUser/${id}`,
+      body: param
+    });
+  }
+
+  public async changePass(param: any, id: number) {
+    return this.baseHttpClient.putRequest({
+      url: `${this.baseUrl}/changePass/${id}`,
       body: param
     });
   }

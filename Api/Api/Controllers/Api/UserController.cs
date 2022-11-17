@@ -583,7 +583,7 @@ namespace Api.Controllers.Api
                         else
                             transaction.Rollback();
 
-                        def.meta = new Meta(200, ApiConstants.MessageResource.UPDATE_SUCCESS);
+                        def.meta = new Meta(200, "Cấp lại mật khẩu thành công!");
                         def.data = data;
                         return Ok(def);
                     }
@@ -662,7 +662,7 @@ namespace Api.Controllers.Api
                         else
                             transaction.Rollback();
 
-                        def.meta = new Meta(200, ApiConstants.MessageResource.UPDATE_SUCCESS);
+                        def.meta = new Meta(200, actionName + " tài khoản thành công!");
                         def.data = data;
                         return Ok(def);
                     }
@@ -995,7 +995,7 @@ namespace Api.Controllers.Api
                         else
                             transaction.Rollback();
 
-                        def.meta = new Meta(200, ApiConstants.MessageResource.UPDATE_SUCCESS);
+                        def.meta = new Meta(200, "Thay đổi mật khẩu thành công!");
                         def.data = data;
                         return Ok(def);
                     }
@@ -1127,7 +1127,7 @@ namespace Api.Controllers.Api
                         else
                             transaction.Rollback();
 
-                        def.meta = new Meta(200, ApiConstants.MessageResource.UPDATE_SUCCESS);
+                        def.meta = new Meta(200, "Thay đổi thông tin tài khoản thành công!");
                         def.data = data;
                         return Ok(def);
                     }
