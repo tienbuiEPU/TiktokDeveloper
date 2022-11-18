@@ -15,6 +15,8 @@ namespace Api.Persistence.Configurations
         {
             base.Configure(builder);
             builder.ToTable("FunctionRole");
+
+            builder.Property(c => c.ActiveKey).HasMaxLength(10).IsRequired(true);
         }
     }
 }
