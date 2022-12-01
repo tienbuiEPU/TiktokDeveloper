@@ -11,46 +11,40 @@ import QueryModel from 'src/app/core/models/query-model';
 
 @Component({
   selector: 'app-categories-add-or-update-type-attribute-item',
-  templateUrl: './add-or-update-type-attribute-item.component.html',
+  templateUrl: './add-or-update-type-attribute-item.component.html'
 })
 export class AddOrUpdateTypeAttributeItemComponent implements OnInit {
-    validateFormItem!: FormGroup;
-    loading: boolean = false;
+  validateFormItem!: FormGroup;
+  loading: boolean = false;
 
-    @Input() record: NzSafeAny;
+  @Input() record: NzSafeAny;
 
-    constructor(
-        private drawerRef: NzDrawerRef<string>, 
-        private fb: FormBuilder,
-        private dataRepository: TypeAttributeRepository, 
-        private modalSrv: NzModalService
-        ) { }
+  constructor(
+    private drawerRef: NzDrawerRef<string>,
+    private fb: FormBuilder,
+    private dataRepository: TypeAttributeRepository,
+    private modalSrv: NzModalService
+  ) {}
 
-    ngOnInit(): void {
-        this.validateFormItem = this.fb.group({
-            TypeAttributeItemId: [this.record ? this.record.TypeAttributeItemId : undefined],
-            Name: [this.record ? this.record.Name : undefined, [Validators.required]],
-            Code: [this.record ?  this.record.Code :undefined, [Validators.required]],
-            Location: [this.record ?  this.record.Location :undefined],
-            TypeAttributeId: [this.record ?  this.record.TypeAttributeId :undefined],
-            UserId: [this.record ?  this.record.UserId :undefined],
-            CreatedAt: [this.record ?  this.record.CreatedAt :undefined],
-            UpdatedAt: [this.record ?  this.record.UpdatedAt :undefined],
-            Status: [this.record ?  this.record.Status :undefined]
-        });
-    }
+  ngOnInit(): void {
+    this.validateFormItem = this.fb.group({
+      Id: [this.record ? this.record.Id : undefined],
+      Code: [this.record ? this.record.Code : undefined, [Validators.required]],
+      Name: [this.record ? this.record.Name : undefined, [Validators.required]],
+      Location: [this.record ? this.record.Location : undefined],
+      TypeAttributeId: [this.record ? this.record.TypeAttributeId : undefined],
+      IsActive: [this.record ? this.record.IsActive : undefined],
+      Note: [this.record ? this.record.Note : undefined]
+    });
+  }
 
-    async submitItemForm() {
-        this.loading = true;
-        let data = { ...this.validateFormItem.value };
-        data.Status = 1;
-        this.drawerRef.close(data);
-    }
+  async submitItemForm() {
+    this.loading = true;
+    let data = { ...this.validateFormItem.value };
+    this.drawerRef.close(data);
+  }
 
-    closeItem(): void {
-        this.drawerRef.close();
-    }
-
+  closeItem(): void {
+    this.drawerRef.close();
+  }
 }
-
-

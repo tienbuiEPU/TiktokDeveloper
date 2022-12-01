@@ -66,7 +66,8 @@ import {
   HistoryOutline,
   IdcardOutline,
   PrinterTwoTone,
-  PercentageOutline
+  PercentageOutline,
+  PlusCircleOutline
 } from '@ant-design/icons-angular/icons';
 
 export const ICONS_AUTO = [
@@ -132,5 +133,6 @@ export const ICONS_AUTO = [
   HistoryOutline,
   IdcardOutline,
   PrinterTwoTone,
-  PercentageOutline
+  PercentageOutline,
+  PlusCircleOutline
 ];

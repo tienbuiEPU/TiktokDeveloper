@@ -99,7 +99,7 @@ namespace Api.Controllers.Api
                         List<TypeAttributeData> res = _mapper.Map<List<TypeAttributeData>>(data.ToList());
                         foreach(TypeAttributeData item in res)
                         {
-                            item.typeAttributeItems = _context.TypeAttributeItems.Where(e => e.TypeAttributeId == item.Id && e.Status != AppEnums.EntityStatus.DELETED).ToList();
+                            item.typeAttributeItems = _context.TypeAttributeItems.Where(e => e.TypeAttributeId == item.Id && e.Status != AppEnums.EntityStatus.DELETED).OrderBy(x => x.UpdatedAt).ToList();
                         }
 
                         def.data = res;

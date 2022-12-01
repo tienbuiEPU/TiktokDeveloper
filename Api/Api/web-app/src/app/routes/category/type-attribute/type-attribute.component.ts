@@ -13,7 +13,7 @@ import { TypeAttributeRepository } from 'src/app/infrastructure/repositories/typ
 
 @Component({
   selector: 'app-type-attribute',
-  templateUrl: './type-attribute.component.html',
+  templateUrl: './type-attribute.component.html'
 })
 export class TypeAttributeComponent implements OnInit {
   @ViewChild('tableRef', { static: false }) tableRef!: STComponent;
@@ -28,12 +28,13 @@ export class TypeAttributeComponent implements OnInit {
   selectAll?: any[] = [];
 
   columns: STColumn[] = [
-    { title: '', index: 'Id', type: 'checkbox' },
-    { title: 'Tên loại hình', index: 'Name' },
+    // { title: '', index: 'Id', type: 'checkbox' },
+    { title: 'Stt', type: 'no', width: 40 },
     { title: 'Mã loại hình', index: 'Code' },
-    { title: 'Cập nhật', index: 'IsUpdate', type: 'yn' },
-    { title: 'Delete', index: 'IsDelete', type: 'yn' },
-    { title: 'Loại hình cha', index: 'TypeAttributeParentId' },
+    { title: 'Tên loại hình', index: 'Name' },
+    // { title: 'Cập nhật', index: 'IsUpdate', type: 'yn' },
+    // { title: 'Delete', index: 'IsDelete', type: 'yn' },
+    { title: 'Ghi chú', index: 'Note' },
     {
       title: 'Thao tác',
       width: 100,
@@ -48,7 +49,7 @@ export class TypeAttributeComponent implements OnInit {
           icon: 'delete',
           type: 'del',
           pop: {
-            title: 'Bạn có chắc chắn muốn xoá?',
+            title: 'Bạn có chắc chắn muốn xoá loại hình này?',
             okType: 'danger',
             icon: 'star'
           },
@@ -77,7 +78,7 @@ export class TypeAttributeComponent implements OnInit {
     private message: NzMessageService,
     private drawerService: NzDrawerService,
     private nzNotificationService: NzNotificationService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.validateForm = this.fb.group({});
@@ -103,7 +104,6 @@ export class TypeAttributeComponent implements OnInit {
     this.query = new QueryModel();
     this.paging.page = 1;
     this.getData();
-
   }
 
   searchData() {
@@ -112,12 +112,11 @@ export class TypeAttributeComponent implements OnInit {
 
   async getData() {
     this.paging.query = '1=1';
-    this.paging.order_by = "CreatedAt Desc";
+    this.paging.order_by = 'CreatedAt Desc';
 
     if (this.query.txtSearch != undefined && this.query.txtSearch != '') {
       if (this.query.txtSearch.trim() != '')
-        this.paging.query += ` and (Name.Contains("${this.query.txtSearch}")`
-          + ` or Code.Contains("${this.query.txtSearch}"))`;
+        this.paging.query += ` and (Name.Contains("${this.query.txtSearch}")` + ` or Code.Contains("${this.query.txtSearch}"))`;
     }
     // if(this.query.type != undefined){
     //   this.paging.query += ` and LoaiNv=${this.query.type}`
@@ -143,19 +142,18 @@ export class TypeAttributeComponent implements OnInit {
 
   addOrUpdate(record?: any): void {
     const drawerRef = this.drawerService.create<AddOrUpdateTypeAttributeComponent>({
-      nzTitle: record ? `Sửa: ${record.Name}` : 'Thêm mới',
+      nzTitle: record ? `Sửa loại hình: ${record.Name}` : 'Thêm mới loại hình',
       // record.khoa_chinh
       nzWidth: '65vw',
       nzContent: AddOrUpdateTypeAttributeComponent,
       nzContentParams: {
-        record,
-
+        record
       }
     });
 
     drawerRef.afterClose.subscribe((data: any) => {
       if (data) {
-        let msg = data.Id ? `Sửa ${data.Name} thành công!` : `Thêm mới ${data.Name} thành công!`;
+        let msg = data.Id ? `Sửa loại hình ${data.Name} thành công!` : `Thêm mới loại hình ${data.Name} thành công!`;
         this.message.success(msg);
         this.getData();
       }
@@ -165,7 +163,7 @@ export class TypeAttributeComponent implements OnInit {
   async delete(data: any) {
     const resp = await this.typeAttributeRepository.delete(data);
     if (resp.meta?.error_code == 200) {
-      this.message.create('success', `Xóa ${data.Name} thành công!`);
+      this.message.create('success', `Xóa loại hình ${data.Name} thành công!`);
       this.getData();
     } else {
       this.message.create('error', resp.meta?.error_message ? resp.meta?.error_message : '');
@@ -188,6 +186,4 @@ export class TypeAttributeComponent implements OnInit {
   onBack() {
     window.history.back();
   }
-
-
 }
